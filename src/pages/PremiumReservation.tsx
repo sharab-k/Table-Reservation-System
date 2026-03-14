@@ -9,6 +9,7 @@ export default function PremiumReservation() {
   const [selectedTable, setSelectedTable] = useState<number | null>(null)
 
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
+  const [hoveredSlot, setHoveredSlot] = useState<string | null>(null)
   const timeSlots = [
     { time: '17:00', status: 'available' },
     { time: '17:30', status: 'booked' },
@@ -84,6 +85,12 @@ export default function PremiumReservation() {
       alignItems: 'center',
       padding: '40px 20px'
     }}>
+      <style>{`
+        input::placeholder, textarea::placeholder {
+          color: rgba(255, 255, 255, 0.4) !important;
+          opacity: 1 !important;
+        }
+      `}</style>
       {/* Header Area */}
       <div style={{ textAlign: 'center', marginBottom: '40px', maxWidth: '800px', width: '100%' }}>
         <div style={{ 
@@ -145,7 +152,7 @@ export default function PremiumReservation() {
                   <div style={{ position: 'relative' }}>
                     <input 
                       type="text" 
-                      defaultValue="18/02/2026"
+                      placeholder="18/02/2026"
                       style={{
                         width: '100%',
                         padding: '16px',
@@ -175,6 +182,8 @@ export default function PremiumReservation() {
                       <div key={index} style={{ position: 'relative' }}>
                         <button 
                           onClick={() => slot.status !== 'booked' && setSelectedTime(slot.time)}
+                          onMouseEnter={() => slot.status === 'booked' && setHoveredSlot(slot.time)}
+                          onMouseLeave={() => setHoveredSlot(null)}
                           style={{
                             width: '100%',
                             padding: '12px 0',
@@ -204,7 +213,7 @@ export default function PremiumReservation() {
                         </button>
                         
                         {/* Tooltip for booked slot */}
-                        {slot.status === 'booked' && (
+                        {slot.status === 'booked' && hoveredSlot === slot.time && (
                           <div style={{
                             position: 'absolute',
                             top: '100%',
@@ -275,7 +284,7 @@ export default function PremiumReservation() {
                       borderRadius: '8px',
                       display: 'flex',
                       alignItems: 'center',
-                      paddingLeft: '20px',
+                      justifyContent: 'center', // added to center the number
                       fontSize: '1rem',
                       color: '#ffffff',
                       boxSizing: 'border-box'
@@ -451,7 +460,7 @@ export default function PremiumReservation() {
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '8px' }}>First Name</label>
                   <input 
                     type="text"
-                    defaultValue="John"
+                    placeholder="John"
                     style={{
                       width: '100%',
                       padding: '16px',
@@ -469,7 +478,7 @@ export default function PremiumReservation() {
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '8px' }}>Last Name</label>
                   <input 
                     type="text"
-                    defaultValue="Doe"
+                    placeholder="Doe"
                     style={{
                       width: '100%',
                       padding: '16px',
@@ -487,7 +496,7 @@ export default function PremiumReservation() {
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '8px' }}>Email</label>
                   <input 
                     type="email"
-                    defaultValue="johndoe@example.com"
+                    placeholder="johndoe@example.com"
                     style={{
                       width: '100%',
                       padding: '16px',
@@ -505,7 +514,7 @@ export default function PremiumReservation() {
                   <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '8px' }}>Phone Number</label>
                   <input 
                     type="tel"
-                    defaultValue="+1 (555) 000-000"
+                    placeholder="+1 (555) 000-000"
                     style={{
                       width: '100%',
                       padding: '16px',
@@ -524,7 +533,7 @@ export default function PremiumReservation() {
               <div>
                 <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '8px' }}>Special Request</label>
                 <textarea 
-                  defaultValue="Lorem ipsum is simply dummy text"
+                  placeholder="Lorem ipsum is simply dummy text"
                   style={{
                     width: '100%',
                     padding: '16px',
