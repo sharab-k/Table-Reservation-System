@@ -8,66 +8,69 @@ interface GuestCounterProps {
 
 export default function GuestCounter({ count, onChange, presets = [2, 4, 6, 8] }: GuestCounterProps) {
   return (
-    <div style={{ marginTop: '24px' }}>
-      <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: '#eab308', marginBottom: '16px', fontFamily: 'var(--font-sans)' }}>
+    <div style={{ marginTop: '32px' }}>
+      <h3 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#111827', marginBottom: '16px', fontFamily: 'var(--font-sans)' }}>
         How many people will be dining?
       </h3>
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }}>
-        <User size={32} style={{ color: '#8b949e' }} />
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', marginTop: '32px' }}>
+        <User size={48} style={{ color: '#9ca3af', opacity: 0.7 }} strokeWidth={1.5} />
+        
+        <div style={{ display: 'flex', alignItems: 'center', gap: '24px', margin: '16px 0' }}>
           <button
             onClick={() => onChange(Math.max(1, count - 1))}
             style={{
-              width: '40px',
-              height: '40px',
+              width: '48px',
+              height: '48px',
               borderRadius: '9999px',
-              backgroundColor: 'rgba(74, 222, 128, 0.2)', // green-primary transparent
-              color: '#4ade80',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              border: 'none',
-              cursor: 'pointer',
-              transition: 'background-color 0.2s'
-            }}
-          >
-            <Minus size={18} />
-          </button>
-          <div style={{
-            width: '96px',
-            height: '40px',
-            border: '1px solid #30363d',
-            borderRadius: '8px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: '#ffffff',
-            fontSize: '1rem',
-            fontWeight: 500,
-            fontFamily: 'var(--font-sans)'
-          }}>
-            {count}
-          </div>
-          <button
-            onClick={() => onChange(Math.min(20, count + 1))}
-            style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '9999px',
-              backgroundColor: '#4ade80', // green-primary
+              backgroundColor: '#5E8B6A',
               color: '#ffffff',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               border: 'none',
               cursor: 'pointer',
-              transition: 'background-color 0.2s'
+              transition: 'background-color 0.2s',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
             }}
           >
-            <Plus size={18} />
+            <Minus size={24} />
+          </button>
+          
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '80px' }}>
+            <span style={{
+              color: '#111827',
+              fontSize: '3rem',
+              fontWeight: 500,
+              fontFamily: 'var(--font-sans)',
+              lineHeight: 1
+            }}>
+              {count}
+            </span>
+            <span style={{ color: '#111827', fontSize: '1.125rem' }}>Guests</span>
+          </div>
+
+          <button
+            onClick={() => onChange(Math.min(20, count + 1))}
+            style={{
+              width: '48px',
+              height: '48px',
+              borderRadius: '9999px',
+              backgroundColor: '#5E8B6A',
+              color: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              border: 'none',
+              cursor: 'pointer',
+              transition: 'background-color 0.2s',
+              boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+            }}
+          >
+            <Plus size={24} />
           </button>
         </div>
-        <div style={{ display: 'flex', gap: '12px', marginTop: '4px' }}>
+
+        <div style={{ display: 'flex', gap: '16px', marginTop: '16px' }}>
           {presets.map((preset) => {
              const isSelected = count === preset;
              return (
@@ -75,13 +78,14 @@ export default function GuestCounter({ count, onChange, presets = [2, 4, 6, 8] }
                 key={preset}
                 onClick={() => onChange(preset)}
                 style={{
-                  padding: '8px 20px',
-                  borderRadius: '8px',
-                  fontSize: '0.875rem',
+                  width: '80px',
+                  padding: '10px 0',
+                  borderRadius: '6px',
+                  fontSize: '1rem',
                   fontWeight: 500,
-                  border: isSelected ? '1px solid #4ade80' : '1px solid #30363d',
-                  backgroundColor: isSelected ? '#4ade80' : 'transparent',
-                  color: isSelected ? '#ffffff' : '#ffffff',
+                  border: isSelected ? '1px solid #5E8B6A' : '1px solid #d1d5db',
+                  backgroundColor: isSelected ? '#5E8B6A' : '#ffffff',
+                  color: isSelected ? '#ffffff' : '#111827',
                   cursor: 'pointer',
                   transition: 'all 0.2s',
                   fontFamily: 'var(--font-sans)'

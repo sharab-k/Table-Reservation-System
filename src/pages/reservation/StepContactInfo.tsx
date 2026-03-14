@@ -8,10 +8,10 @@ interface StepContactInfoProps {
 export default function StepContactInfo({ data, updateData }: StepContactInfoProps) {
   return (
     <div>
-      <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#ffffff', marginBottom: '4px', fontFamily: 'var(--font-sans)', marginTop: 0 }}>
+      <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827', marginBottom: '4px', fontFamily: 'var(--font-sans)', marginTop: 0 }}>
         Contact Information
       </h2>
-      <p style={{ fontSize: '0.875rem', color: '#8b949e', marginBottom: '24px', fontFamily: 'var(--font-sans)', marginTop: 0 }}>
+      <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '24px', fontFamily: 'var(--font-sans)', marginTop: 0 }}>
         Please provide your details for the reservation
       </p>
 
@@ -21,7 +21,7 @@ export default function StepContactInfo({ data, updateData }: StepContactInfoPro
         gap: '24px'
       }}>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <label style={{ fontSize: '0.875rem', fontWeight: 600, color: '#ffffff', marginBottom: '8px', fontFamily: 'var(--font-sans)' }}>
+          <label style={{ fontSize: '0.875rem', fontWeight: 600, color: '#111827', marginBottom: '8px', fontFamily: 'var(--font-sans)' }}>
             First Name
           </label>
           <input
@@ -29,12 +29,21 @@ export default function StepContactInfo({ data, updateData }: StepContactInfoPro
             value={data.firstName}
             onChange={(e) => updateData({ firstName: e.target.value })}
             placeholder="John"
-            className="input-dark"
-            style={{ width: '100%', boxSizing: 'border-box' }}
+            style={{ 
+              width: '100%', 
+              boxSizing: 'border-box',
+              backgroundColor: '#ffffff',
+              border: '1px solid #d1d5db',
+              borderRadius: '8px',
+              padding: '12px 16px',
+              color: '#111827',
+              fontSize: '1rem',
+              fontFamily: 'var(--font-sans)'
+            }}
           />
         </div>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <label style={{ fontSize: '0.875rem', fontWeight: 600, color: '#ffffff', marginBottom: '8px', fontFamily: 'var(--font-sans)' }}>
+          <label style={{ fontSize: '0.875rem', fontWeight: 600, color: '#111827', marginBottom: '8px', fontFamily: 'var(--font-sans)' }}>
             Last Name
           </label>
           <input
@@ -42,12 +51,21 @@ export default function StepContactInfo({ data, updateData }: StepContactInfoPro
             value={data.lastName}
             onChange={(e) => updateData({ lastName: e.target.value })}
             placeholder="Doe"
-            className="input-dark"
-            style={{ width: '100%', boxSizing: 'border-box' }}
+            style={{ 
+              width: '100%', 
+              boxSizing: 'border-box',
+              backgroundColor: '#ffffff',
+              border: '1px solid #d1d5db',
+              borderRadius: '8px',
+              padding: '12px 16px',
+              color: '#111827',
+              fontSize: '1rem',
+              fontFamily: 'var(--font-sans)'
+            }}
           />
         </div>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <label style={{ fontSize: '0.875rem', fontWeight: 600, color: '#ffffff', marginBottom: '8px', fontFamily: 'var(--font-sans)' }}>
+          <label style={{ fontSize: '0.875rem', fontWeight: 600, color: '#111827', marginBottom: '8px', fontFamily: 'var(--font-sans)' }}>
             Email
           </label>
           <input
@@ -55,12 +73,21 @@ export default function StepContactInfo({ data, updateData }: StepContactInfoPro
             value={data.email}
             onChange={(e) => updateData({ email: e.target.value })}
             placeholder="johndoe@example.com"
-            className="input-dark"
-            style={{ width: '100%', boxSizing: 'border-box' }}
+            style={{ 
+              width: '100%', 
+              boxSizing: 'border-box',
+              backgroundColor: '#ffffff',
+              border: '1px solid #d1d5db',
+              borderRadius: '8px',
+              padding: '12px 16px',
+              color: '#111827',
+              fontSize: '1rem',
+              fontFamily: 'var(--font-sans)'
+            }}
           />
         </div>
         <div style={{ display: 'flex', flexDirection: 'column' }}>
-          <label style={{ fontSize: '0.875rem', fontWeight: 600, color: '#ffffff', marginBottom: '8px', fontFamily: 'var(--font-sans)' }}>
+          <label style={{ fontSize: '0.875rem', fontWeight: 600, color: '#111827', marginBottom: '8px', fontFamily: 'var(--font-sans)' }}>
             Phone Number
           </label>
           <input
@@ -68,14 +95,23 @@ export default function StepContactInfo({ data, updateData }: StepContactInfoPro
             value={data.phone}
             onChange={(e) => updateData({ phone: e.target.value })}
             placeholder="+1 (555) 000-000"
-            className="input-dark"
-            style={{ width: '100%', boxSizing: 'border-box' }}
+            style={{ 
+              width: '100%', 
+              boxSizing: 'border-box',
+              backgroundColor: '#ffffff',
+              border: '1px solid #d1d5db',
+              borderRadius: '8px',
+              padding: '12px 16px',
+              color: '#111827',
+              fontSize: '1rem',
+              fontFamily: 'var(--font-sans)'
+            }}
           />
         </div>
       </div>
 
       <div style={{ marginTop: '24px', display: 'flex', flexDirection: 'column' }}>
-        <label style={{ fontSize: '0.875rem', fontWeight: 600, color: '#ffffff', marginBottom: '8px', fontFamily: 'var(--font-sans)' }}>
+        <label style={{ fontSize: '0.875rem', fontWeight: 600, color: '#111827', marginBottom: '8px', fontFamily: 'var(--font-sans)' }}>
           Special Request
         </label>
         <textarea
@@ -83,8 +119,18 @@ export default function StepContactInfo({ data, updateData }: StepContactInfoPro
           onChange={(e) => updateData({ specialRequest: e.target.value })}
           placeholder="Lorem ipsum is simply dummy text"
           rows={5}
-          className="input-dark"
-          style={{ width: '100%', boxSizing: 'border-box', resize: 'none' }}
+          style={{ 
+            width: '100%', 
+            boxSizing: 'border-box', 
+            resize: 'none',
+            backgroundColor: '#ffffff',
+            border: '1px solid #d1d5db',
+            borderRadius: '8px',
+            padding: '12px 16px',
+            color: '#111827',
+            fontSize: '1rem',
+            fontFamily: 'var(--font-sans)'
+          }}
         />
       </div>
     </div>

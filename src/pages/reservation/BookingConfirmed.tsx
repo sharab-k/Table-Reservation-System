@@ -19,7 +19,7 @@ export default function BookingConfirmed() {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#0B1517',
+      backgroundColor: '#F8F9FA',
       display: 'flex',
       flexDirection: 'column',
       alignItems: 'center',
@@ -33,17 +33,17 @@ export default function BookingConfirmed() {
             width: '64px', // slightly wider to match new screenshot scale
             height: '64px',
             borderRadius: '9999px',
-            backgroundColor: '#161F22', // match new screenshot
+            backgroundColor: '#EAF4EC', // match new screenshot
             border: 'none', // no border in new screenshot
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center'
           }}>
-            <ChefHat size={32} style={{ color: '#ffffff' }} strokeWidth={1.5} />
+            <ChefHat size={32} style={{ color: '#5E8B6A' }} strokeWidth={1.5} />
           </div>
         </div>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#ffffff', margin: 0 }}>Table Reservation</h1>
-        <p style={{ color: '#8b949e', fontSize: '0.875rem', marginTop: '4px' }}>
+        <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#111827', margin: 0 }}>Table Reservation</h1>
+        <p style={{ color: '#6b7280', fontSize: '0.875rem', marginTop: '4px' }}>
           Book your perfect dining experience in just a few steps.
         </p>
       </div>
@@ -58,8 +58,10 @@ export default function BookingConfirmed() {
       }}>
         <div style={{
           boxSizing: 'border-box',
-          backgroundColor: '#101A1C',
+          backgroundColor: '#ffffff',
           borderRadius: '16px',
+          border: '1px solid #e5e7eb',
+          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)',
           padding: '56px 40px 32px 40px', // closer matching to screenshot footprint
           display: 'flex',
           flexDirection: 'column',
@@ -67,43 +69,45 @@ export default function BookingConfirmed() {
           position: 'relative'
         }}>
           {/* Success Icon */}
-          <div style={{
-            width: '56px',
-            height: '56px',
-            borderRadius: '9999px',
-            backgroundColor: '#6B9E78', // matching the muted green from the screenshot
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            marginBottom: '24px'
-          }}>
-            <Check size={28} style={{ color: '#0B1517' }} strokeWidth={3} />
-          </div>
+            <div style={{
+              width: '64px',
+              height: '64px',
+              borderRadius: '9999px',
+              backgroundColor: '#5E8B6A',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              marginBottom: '24px',
+              boxShadow: '0 4px 14px 0 rgba(94, 139, 106, 0.39)'
+            }}>
+              <Check size={32} style={{ color: '#ffffff' }} strokeWidth={3} />
+            </div>
 
-          {/* Success Header Content */}
-          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-             <h2 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#ffffff', margin: '0 0 8px 0', fontFamily: 'var(--font-sans)' }}>
-               Booking Confirmed!
-             </h2>
-             <p style={{ fontSize: '1rem', color: '#8b949e', margin: 0, fontFamily: 'var(--font-sans)' }}>
-               Your reservation details have been sent to {data.email || 'johndoe@example.com'}
-             </p>
-          </div>
+            {/* Success Header Content */}
+            <div style={{ textAlign: 'center', marginBottom: '32px' }}>
+               <h2 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#111827', margin: '0 0 8px 0', fontFamily: 'var(--font-sans)' }}>
+                 Booking Confirmed!
+               </h2>
+               <p style={{ fontSize: '1rem', color: '#6b7280', margin: 0, fontFamily: 'var(--font-sans)' }}>
+                 Your reservation details have been sent to {data.email || 'johndoe@example.com'}
+               </p>
+            </div>
 
           {/* Inner Details Box */}
-          <div style={{
-            width: '100%',
-            maxWidth: '700px',
-            height: '340px',
-            boxSizing: 'border-box',
-            backgroundColor: '#161F22', // slightly lighter than outer box
-            borderRadius: '12px',
-            padding: '24px 32px', // giving it some internal breathing room
-            marginBottom: '40px',
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'center'
-          }}>
+            <div style={{
+              width: '100%',
+              maxWidth: '700px',
+              height: '340px',
+              boxSizing: 'border-box',
+              backgroundColor: '#F9FAFB',
+              border: '1px solid #e5e7eb',
+              borderRadius: '12px',
+              padding: '24px 32px', // giving it some internal breathing room
+              marginBottom: '40px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'center'
+            }}>
             {details.map((item, index) => (
               <div key={item.label} style={{
                 display: 'flex',
@@ -112,12 +116,12 @@ export default function BookingConfirmed() {
                 padding: '0',
                 height: '56px'
               }}>
-                <span style={{ fontSize: '1.125rem', fontWeight: 700, color: '#ffffff', fontFamily: 'var(--font-sans)' }}>
-                  {item.label}
-                </span>
-                <span style={{ fontSize: '1rem', color: '#8b949e', fontFamily: 'var(--font-sans)', textAlign: 'right', marginTop: '2px' }}>
-                  {item.value}
-                </span>
+                  <span style={{ fontSize: '1.125rem', fontWeight: 600, color: '#111827', fontFamily: 'var(--font-sans)' }}>
+                    {item.label}
+                  </span>
+                  <span style={{ fontSize: '1rem', color: '#6b7280', fontFamily: 'var(--font-sans)', textAlign: 'right', marginTop: '2px' }}>
+                    {item.value}
+                  </span>
               </div>
             ))}
           </div>

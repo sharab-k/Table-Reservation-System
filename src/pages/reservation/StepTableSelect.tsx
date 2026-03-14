@@ -37,10 +37,10 @@ export default function StepTableSelect({ data, updateData }: StepTableSelectPro
 
   return (
     <div>
-      <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#ffffff', marginBottom: '4px', fontFamily: 'var(--font-sans)', marginTop: 0 }}>
+      <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#111827', marginBottom: '4px', fontFamily: 'var(--font-sans)', marginTop: 0 }}>
         Choose Your Table
       </h2>
-      <p style={{ fontSize: '0.875rem', color: '#8b949e', marginBottom: '32px', fontFamily: 'var(--font-sans)', marginTop: 0 }}>
+      <p style={{ fontSize: '0.875rem', color: '#6b7280', marginBottom: '32px', fontFamily: 'var(--font-sans)', marginTop: 0 }}>
         Select from our available tables
       </p>
 
@@ -48,9 +48,9 @@ export default function StepTableSelect({ data, updateData }: StepTableSelectPro
         <div key={area} style={{ marginBottom: '24px' }}>
           {/* Area Divider */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
-            <div style={{ flex: 1, height: '1px', backgroundColor: '#30363d' }} />
+            <div style={{ flex: 1, height: '1px', backgroundColor: '#e5e7eb' }} />
             <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#C99C63', fontFamily: "'Helvetica Neue', Arial, sans-serif" }}>{area}</span>
-            <div style={{ flex: 1, height: '1px', backgroundColor: '#30363d' }} />
+            <div style={{ flex: 1, height: '1px', backgroundColor: '#e5e7eb' }} />
           </div>
 
           {/* Table Grid */}

@@ -26,7 +26,7 @@ export default function SignUp() {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#0B1517',
+      backgroundColor: '#EFF3F8',
       fontFamily: 'var(--font-sans)',
       position: 'relative',
       display: 'flex',
@@ -43,7 +43,7 @@ export default function SignUp() {
         <Link to="/" style={{
           fontSize: '1.5rem',
           fontWeight: 700,
-          color: '#ffffff',
+          color: '#111827',
           textDecoration: 'none',
           letterSpacing: '-0.02em',
         }}>
@@ -53,34 +53,34 @@ export default function SignUp() {
 
       {/* Main Card */}
       <div style={{
-        backgroundColor: '#101A1C',
+        backgroundColor: '#ffffff',
         borderRadius: '16px',
-        padding: '24px',
+        padding: '40px',
         width: '100%',
-        maxWidth: '400px',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+        maxWidth: '480px',
+        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -1px rgba(0, 0, 0, 0.04)',
       }}>
         <h1 style={{
-          fontSize: '1.25rem',
+          fontSize: '1.75rem',
           fontWeight: 700,
-          color: '#ffffff',
+          color: '#111827',
           textAlign: 'center',
-          marginBottom: '4px'
+          marginBottom: '8px'
         }}>
           Setup Your Restaurant
         </h1>
         <p style={{
-          color: '#8b949e',
+          color: '#111827',
           textAlign: 'center',
-          fontSize: '0.75rem',
-          marginBottom: '24px'
+          fontSize: '0.875rem',
+          marginBottom: '32px'
         }}>
           Set up table flow for your business
         </p>
 
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#ffffff', marginBottom: '4px' }}>
+            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#111827', marginBottom: '6px' }}>
               Business Name
             </label>
             <input
@@ -90,19 +90,19 @@ export default function SignUp() {
               placeholder="Enter"
               style={{
                 width: '100%',
-                backgroundColor: '#161B22',
-                border: '1px solid #30363d',
-                borderRadius: '8px',
-                padding: '8px 12px',
-                color: '#ffffff',
-                fontSize: '0.8125rem',
+                backgroundColor: '#ffffff',
+                border: '1px solid #d1d5db',
+                borderRadius: '10px',
+                padding: '12px 16px',
+                color: '#111827',
+                fontSize: '0.9375rem',
                 outline: 'none',
               }}
             />
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#ffffff', marginBottom: '4px' }}>
+            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#111827', marginBottom: '6px' }}>
               Owner Name
             </label>
             <input
@@ -112,19 +112,19 @@ export default function SignUp() {
               placeholder="Enter"
               style={{
                 width: '100%',
-                backgroundColor: '#161B22',
-                border: '1px solid #30363d',
-                borderRadius: '8px',
-                padding: '8px 12px',
-                color: '#ffffff',
-                fontSize: '0.8125rem',
+                backgroundColor: '#ffffff',
+                border: '1px solid #d1d5db',
+                borderRadius: '10px',
+                padding: '12px 16px',
+                color: '#111827',
+                fontSize: '0.9375rem',
                 outline: 'none',
               }}
             />
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#ffffff', marginBottom: '4px' }}>
+            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#111827', marginBottom: '6px' }}>
               Email
             </label>
             <input
@@ -134,19 +134,19 @@ export default function SignUp() {
               placeholder="Enter"
               style={{
                 width: '100%',
-                backgroundColor: '#161B22',
-                border: '1px solid #30363d',
-                borderRadius: '8px',
-                padding: '8px 12px',
-                color: '#ffffff',
-                fontSize: '0.8125rem',
+                backgroundColor: '#ffffff',
+                border: '1px solid #d1d5db',
+                borderRadius: '10px',
+                padding: '12px 16px',
+                color: '#111827',
+                fontSize: '0.9375rem',
                 outline: 'none',
               }}
             />
           </div>
 
           <div>
-            <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#ffffff', marginBottom: '4px' }}>
+            <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#111827', marginBottom: '6px' }}>
               Password
             </label>
             <div style={{ position: 'relative' }}>
@@ -157,13 +157,13 @@ export default function SignUp() {
                 placeholder="Enter Password"
                 style={{
                   width: '100%',
-                  backgroundColor: '#161B22',
-                  border: '1px solid #30363d',
-                  borderRadius: '8px',
-                  padding: '8px 12px',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '10px',
+                  padding: '12px 16px',
                   paddingRight: '40px',
-                  color: '#ffffff',
-                  fontSize: '0.8125rem',
+                  color: '#111827',
+                  fontSize: '0.9375rem',
                   outline: 'none',
                 }}
               />
@@ -177,7 +177,7 @@ export default function SignUp() {
                   transform: 'translateY(-50%)',
                   background: 'none',
                   border: 'none',
-                  color: '#8b949e',
+                  color: '#9ca3af',
                   cursor: 'pointer',
                   display: 'flex',
                   alignItems: 'center',
@@ -191,7 +191,7 @@ export default function SignUp() {
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
             <div>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#ffffff', marginBottom: '4px' }}>
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#111827', marginBottom: '6px' }}>
                 Country
               </label>
               <select
@@ -199,17 +199,17 @@ export default function SignUp() {
                 onChange={(e) => handleChange('country', e.target.value)}
                 style={{
                   width: '100%',
-                  backgroundColor: '#161B22',
-                  border: '1px solid #30363d',
-                  borderRadius: '8px',
-                  padding: '8px 12px',
-                  color: '#8b949e',
-                  fontSize: '0.8125rem',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '10px',
+                  padding: '12px 16px',
+                  color: '#6b7280',
+                  fontSize: '0.9375rem',
                   outline: 'none',
                   appearance: 'none',
-                  backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b949e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
+                  backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
                   backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 8px center',
+                  backgroundPosition: 'right 12px center',
                   backgroundSize: '14px',
                   cursor: 'pointer',
                 }}
@@ -222,7 +222,7 @@ export default function SignUp() {
               </select>
             </div>
             <div>
-              <label style={{ display: 'block', fontSize: '0.75rem', fontWeight: 500, color: '#ffffff', marginBottom: '4px' }}>
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#111827', marginBottom: '6px' }}>
                 Timezone
               </label>
               <select
@@ -230,17 +230,17 @@ export default function SignUp() {
                 onChange={(e) => handleChange('timezone', e.target.value)}
                 style={{
                   width: '100%',
-                  backgroundColor: '#161B22',
-                  border: '1px solid #30363d',
-                  borderRadius: '8px',
-                  padding: '8px 12px',
-                  color: '#8b949e',
-                  fontSize: '0.8125rem',
+                  backgroundColor: '#ffffff',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '10px',
+                  padding: '12px 16px',
+                  color: '#6b7280',
+                  fontSize: '0.9375rem',
                   outline: 'none',
                   appearance: 'none',
-                  backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b949e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
+                  backgroundImage: `url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e")`,
                   backgroundRepeat: 'no-repeat',
-                  backgroundPosition: 'right 8px center',
+                  backgroundPosition: 'right 12px center',
                   backgroundSize: '14px',
                   cursor: 'pointer',
                 }}
@@ -255,15 +255,15 @@ export default function SignUp() {
 
           <button type="submit" style={{
             width: '100%',
-            padding: '10px',
+            padding: '14px',
             backgroundColor: '#C99C63',
             color: '#ffffff',
             border: 'none',
-            borderRadius: '8px',
+            borderRadius: '10px',
             fontWeight: 600,
-            fontSize: '0.875rem',
+            fontSize: '1rem',
             cursor: 'pointer',
-            marginTop: '4px',
+            marginTop: '8px',
           }}
           >
             Sign In
@@ -272,16 +272,16 @@ export default function SignUp() {
 
         <p style={{
           textAlign: 'center',
-          color: '#e5e7eb',
-          fontSize: '0.75rem',
-          marginTop: '16px',
+          color: '#111827',
+          fontSize: '0.875rem',
+          marginTop: '20px',
           marginBottom: 0
         }}>
           Already have an account?{' '}
           <Link to="/login" style={{
-            color: '#5EEA7A',
+            color: '#5E8B6A',
             textDecoration: 'none',
-            fontWeight: 500,
+            fontWeight: 600,
           }}
           >
             Sign In

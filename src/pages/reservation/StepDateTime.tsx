@@ -22,7 +22,7 @@ export default function StepDateTime({ data, updateData }: StepDateTimeProps) {
 
   return (
     <div>
-      <h2 style={{ fontSize: '1.125rem', fontWeight: 600, color: '#4ade80', marginBottom: '16px', fontFamily: 'var(--font-sans)', marginTop: 0 }}>
+      <h2 style={{ fontSize: '1.25rem', fontWeight: 600, color: '#111827', marginBottom: '24px', fontFamily: 'var(--font-sans)', marginTop: 0 }}>
         When would you like to dine?
       </h2>
 
@@ -31,15 +31,15 @@ export default function StepDateTime({ data, updateData }: StepDateTimeProps) {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          backgroundColor: '#0d1117',
-          border: '1px solid #30363d',
+          backgroundColor: '#fef2f2',
+          border: '1px solid #fecaca',
           borderRadius: '12px',
           padding: '16px',
           marginBottom: '24px'
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#f87171' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#dc2626' }}>
             <AlertCircle size={16} />
-            <span style={{ fontSize: '0.875rem', fontFamily: 'var(--font-sans)' }}>All time slots are fully booked.</span>
+            <span style={{ fontSize: '0.875rem', fontFamily: 'var(--font-sans)', fontWeight: 500 }}>All time slots are fully booked.</span>
           </div>
           <button
             onClick={() => setShowWaitingList(true)}
@@ -52,8 +52,8 @@ export default function StepDateTime({ data, updateData }: StepDateTimeProps) {
       )}
 
       {/* Date */}
-      <div style={{ marginBottom: '24px' }}>
-        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#ffffff', marginBottom: '8px', fontFamily: 'var(--font-sans)' }}>
+      <div style={{ marginBottom: '32px' }}>
+        <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#111827', marginBottom: '8px', fontFamily: 'var(--font-sans)' }}>
           Date
         </label>
         <div style={{ position: 'relative' }}>
@@ -61,10 +61,20 @@ export default function StepDateTime({ data, updateData }: StepDateTimeProps) {
             type="text"
             value={data.date}
             onChange={(e) => updateData({ date: e.target.value })}
-            className="input-dark"
-            style={{ paddingRight: '40px', width: '100%', boxSizing: 'border-box' }}
+            style={{ 
+              padding: '12px 16px', 
+              paddingRight: '40px', 
+              width: '100%', 
+              boxSizing: 'border-box',
+              backgroundColor: '#ffffff',
+              border: '1px solid #d1d5db',
+              borderRadius: '8px',
+              color: '#111827',
+              fontSize: '1rem',
+              fontFamily: 'var(--font-sans)'
+            }}
           />
-          <Calendar size={16} style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', color: '#8b949e' }} />
+          <Calendar size={18} style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: '#6b7280' }} />
         </div>
       </div>
 

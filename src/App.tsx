@@ -7,6 +7,11 @@ import BookingConfirmed from './pages/reservation/BookingConfirmed'
 import CustomerDashboard from './pages/CustomerDashboard'
 import AdminDashboard from './pages/admin/AdminDashboard'
 import SetupWizard from './pages/setup/SetupWizard'
+import StaffLogin from './pages/StaffLogin'
+import StaffTableManagement from './pages/staff/StaffTableManagement'
+import LoggedInTabRes from './pages/LoggedInTabRes'
+import Welcome from './pages/Welcome'
+import PremiumReservation from './pages/PremiumReservation'
 
 function App() {
   return (
@@ -19,6 +24,11 @@ function App() {
       <Route path="/dashboard" element={<CustomerDashboard />} />
       <Route path="/admin" element={<AdminDashboard />} />
       <Route path="/setup" element={<SetupWizard />} />
+      <Route path="/staff-login" element={<StaffLogin />} />
+      <Route path="/staff/tables" element={<StaffTableManagement />} />
+      <Route path="/logged-in-tab-res" element={<LoggedInTabRes />} />
+      <Route path="/welcome" element={<Welcome />} />
+      <Route path="/premium-reserve" element={<PremiumReservation />} />
     </Routes>
   )
 }

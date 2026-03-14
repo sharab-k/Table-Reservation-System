@@ -8,18 +8,18 @@ export default function ProgressBar({ currentStep, totalSteps, percentage }: Pro
   return (
     <div style={{ width: '100%' }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
-        <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#8b949e', fontFamily: 'Inter, system-ui, sans-serif' }}>
+        <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#6b7280', fontFamily: 'Inter, system-ui, sans-serif' }}>
           Step {currentStep} of {totalSteps}
         </span>
-        <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#8b949e', fontFamily: 'Inter, system-ui, sans-serif' }}>
+        <span style={{ fontSize: '0.875rem', fontWeight: 500, color: '#6b7280', fontFamily: 'Inter, system-ui, sans-serif' }}>
           {percentage}% Complete
         </span>
       </div>
-      <div style={{ width: '100%', height: '6px', backgroundColor: '#30363d', borderRadius: '4px', overflow: 'hidden' }}>
+      <div style={{ width: '100%', height: '6px', backgroundColor: '#e5e7eb', borderRadius: '4px', overflow: 'hidden' }}>
         <div
           style={{
             height: '100%',
-            backgroundColor: '#5EEA7A', // premium green
+            backgroundColor: '#6B9E78',
             borderRadius: '4px',
             transition: 'width 0.5s cubic-bezier(0.4, 0, 0.2, 1)',
             width: `${percentage}%`

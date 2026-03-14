@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import Navbar from '../../components/Navbar'
 import ProgressBar from '../../components/ProgressBar'
-import { X, Upload, Download, Eye, EyeOff } from 'lucide-react'
+import { X, Upload, Download, Eye, EyeOff, ChefHat } from 'lucide-react'
 
 const TOTAL_STEPS = 4
 
@@ -62,10 +62,10 @@ export default function SetupWizard() {
       case 1:
         return (
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#ffffff', margin: 0 }}>Restaurant Details</h2>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827', margin: 0 }}>Restaurant Details</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div>
-                <label style={{ display: 'block', fontSize: '1rem', fontWeight: 600, color: '#ffffff', marginBottom: '12px' }}>Address</label>
+                <label style={{ display: 'block', fontSize: '1rem', fontWeight: 600, color: '#111827', marginBottom: '12px' }}>Address</label>
                 <input
                   type="text"
                   value={details.address}
@@ -73,11 +73,11 @@ export default function SetupWizard() {
                   placeholder="123 Main Street, London"
                   style={{
                     width: '100%',
-                    backgroundColor: '#161B22',
-                    border: '1px solid #30363d',
-                    borderRadius: '8px',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '10px',
                     padding: '16px 20px',
-                    color: '#8b949e',
+                    color: '#111827',
                     fontSize: '1rem',
                     outline: 'none',
                   }}
@@ -85,36 +85,36 @@ export default function SetupWizard() {
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
                 <div>
-                  <label style={{ display: 'block', fontSize: '1rem', fontWeight: 600, color: '#ffffff', marginBottom: '12px' }}>Opening Time</label>
+                  <label style={{ display: 'block', fontSize: '1rem', fontWeight: 600, color: '#111827', marginBottom: '12px' }}>Opening Time</label>
                   <input
                     type="text"
                     value={details.openingTime}
                     onChange={(e) => setDetails({ ...details, openingTime: e.target.value })}
                     style={{
                       width: '100%',
-                      backgroundColor: '#161B22',
-                      border: '1px solid #30363d',
-                      borderRadius: '8px',
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '10px',
                       padding: '16px 20px',
-                      color: '#ffffff',
+                      color: '#111827',
                       fontSize: '1.125rem',
                       outline: 'none',
                     }}
                   />
                 </div>
                 <div>
-                  <label style={{ display: 'block', fontSize: '1rem', fontWeight: 600, color: '#ffffff', marginBottom: '12px' }}>Closing Time</label>
+                  <label style={{ display: 'block', fontSize: '1rem', fontWeight: 600, color: '#111827', marginBottom: '12px' }}>Closing Time</label>
                   <input
                     type="text"
                     value={details.closingTime}
                     onChange={(e) => setDetails({ ...details, closingTime: e.target.value })}
                     style={{
                       width: '100%',
-                      backgroundColor: '#161B22',
-                      border: '1px solid #30363d',
-                      borderRadius: '8px',
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '10px',
                       padding: '16px 20px',
-                      color: '#ffffff',
+                      color: '#111827',
                       fontSize: '1.125rem',
                       outline: 'none',
                     }}
@@ -128,9 +128,9 @@ export default function SetupWizard() {
       case 2:
         return (
           <div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#ffffff', marginBottom: '24px' }}>Floor Map Setup</h2>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827', marginBottom: '24px' }}>Floor Map Setup</h2>
             <div style={{
-              border: '2px dashed #30363d',
+              border: '2px dashed #9ca3af',
               borderRadius: '12px',
               padding: '48px',
               textAlign: 'center',
@@ -138,12 +138,12 @@ export default function SetupWizard() {
               marginBottom: '24px',
               backgroundColor: 'transparent'
             }}>
-              <Upload size={24} style={{ color: '#8b949e', margin: '0 auto 12px' }} />
-              <p style={{ fontSize: '0.875rem', fontWeight: 600, color: '#ffffff' }}>Upload CSV</p>
-              <p style={{ fontSize: '0.75rem', color: '#8b949e', marginTop: '4px' }}>Table number, capacity, area, type</p>
+              <Upload size={24} style={{ color: '#6b7280', margin: '0 auto 12px' }} />
+              <p style={{ fontSize: '0.875rem', fontWeight: 600, color: '#111827' }}>Upload CSV</p>
+              <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '4px' }}>Table number, capacity, area, type</p>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'between', marginBottom: '16px' }}>
-              <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#ffffff', flex: 1 }}>Sample Sheet</h3>
+              <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#111827', flex: 1 }}>Sample Sheet</h3>
               <button style={{
                 backgroundColor: '#C99C63',
                 color: '#ffffff',
@@ -160,12 +160,12 @@ export default function SetupWizard() {
                 <Download size={14} /> Download
               </button>
             </div>
-            <div style={{ backgroundColor: '#161B22', border: '1px solid #30363d', borderRadius: '12px', overflow: 'hidden' }}>
+            <div style={{ backgroundColor: '#ffffff', border: '1px solid #d1d5db', borderRadius: '12px', overflow: 'hidden' }}>
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
                 <thead>
-                <tr style={{ borderBottom: '1px solid #30363d' }}>
+                <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
                   {['Table', 'Capacity', 'Area', 'Type'].map(h => (
-                    <th key={h} style={{ textAlign: 'left', padding: '12px 16px', fontWeight: 500, color: '#8b949e' }}>{h}</th>
+                    <th key={h} style={{ textAlign: 'left', padding: '12px 16px', fontWeight: 600, color: '#111827' }}>{h}</th>
                   ))}
                 </tr>
                 </thead>
@@ -175,11 +175,11 @@ export default function SetupWizard() {
                     { t: '#2', c: '3-4', a: 'Main Dining', ty: 'Main Dining' },
                     { t: '#3', c: '1-2', a: 'Outdoor', ty: 'Outdoor' },
                   ].map(r => (
-                    <tr key={r.t} style={{ borderBottom: '1px solid #30363d' }}>
-                      <td style={{ padding: '14px 16px', color: '#8b949e' }}>{r.t}</td>
-                      <td style={{ padding: '14px 16px', color: '#8b949e' }}>{r.c}</td>
-                      <td style={{ padding: '14px 16px', color: '#8b949e' }}>{r.a}</td>
-                      <td style={{ padding: '14px 16px', color: '#8b949e' }}>{r.ty}</td>
+                    <tr key={r.t} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                      <td style={{ padding: '14px 16px', color: '#6b7280' }}>{r.t}</td>
+                      <td style={{ padding: '14px 16px', color: '#6b7280' }}>{r.c}</td>
+                      <td style={{ padding: '14px 16px', color: '#6b7280' }}>{r.a}</td>
+                      <td style={{ padding: '14px 16px', color: '#6b7280' }}>{r.ty}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -191,23 +191,24 @@ export default function SetupWizard() {
       case 3:
         return (
           <div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#ffffff', marginBottom: '24px' }}>Table Rules</h2>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827', marginBottom: '24px' }}>Table Rules</h2>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {[
                 { key: 'mergeable' as const, title: 'Mergeable Tables', desc: 'Allow combining adjacent tables for large parties' },
                 { key: 'walkIns' as const, title: 'Walk-ins Allowed', desc: 'Allow staff to seat guests without reservations' },
               ].map((rule) => (
                 <div key={rule.key} style={{
-                  border: '1px solid #30363d',
+                  border: '1px solid #d1d5db',
                   borderRadius: '12px',
                   padding: '20px',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'space-between'
+                  justifyContent: 'space-between',
+                  backgroundColor: '#ffffff'
                 }}>
                   <div>
-                    <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: '#ffffff' }}>{rule.title}</h3>
-                    <p style={{ fontSize: '0.75rem', color: '#8b949e', marginTop: '4px' }}>{rule.desc}</p>
+                    <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: '#111827' }}>{rule.title}</h3>
+                    <p style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '4px' }}>{rule.desc}</p>
                   </div>
                   <button
                     onClick={() => setRules({ ...rules, [rule.key]: !rules[rule.key] })}
@@ -215,7 +216,7 @@ export default function SetupWizard() {
                       width: '44px',
                       height: '24px',
                       borderRadius: '999px',
-                      backgroundColor: rules[rule.key] ? '#5EEA7A' : '#30363d',
+                      backgroundColor: rules[rule.key] ? '#5E8B6A' : '#d1d5db',
                       border: 'none',
                       position: 'relative',
                       cursor: 'pointer',
@@ -242,10 +243,10 @@ export default function SetupWizard() {
       case 4:
         return (
           <div>
-            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#ffffff', marginBottom: '24px' }}>Invite Your Team</h2>
+            <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#111827', marginBottom: '24px' }}>Invite Your Team</h2>
             <div style={{ display: 'flex', alignItems: 'end', gap: '12px', marginBottom: '24px' }}>
               <div style={{ flex: 1 }}>
-                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#ffffff', marginBottom: '8px' }}>Team Member Email</label>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#111827', marginBottom: '8px' }}>Team Member Email</label>
                 <input
                   type="email"
                   value={teamEmail}
@@ -253,29 +254,29 @@ export default function SetupWizard() {
                   placeholder="john@example.com"
                   style={{
                     width: '100%',
-                    backgroundColor: '#161B22',
-                    border: '1px solid #30363d',
-                    borderRadius: '8px',
+                    backgroundColor: '#ffffff',
+                    border: '1px solid #d1d5db',
+                    borderRadius: '10px',
                     padding: '12px 16px',
-                    color: '#ffffff',
+                    color: '#111827',
                     fontSize: '0.875rem',
                     outline: 'none',
                   }}
                 />
               </div>
               <div style={{ width: '200px' }}>
-                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#ffffff', marginBottom: '8px' }}>Role</label>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#111827', marginBottom: '8px' }}>Role</label>
                 <div style={{ position: 'relative' }}>
                   <select
                     value={teamRole}
                     onChange={(e) => setTeamRole(e.target.value)}
                     style={{
                       width: '100%',
-                      backgroundColor: '#161B22',
-                      border: '1px solid #30363d',
-                      borderRadius: '8px',
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '10px',
                       padding: '12px 16px',
-                      color: '#ffffff',
+                      color: '#111827',
                       fontSize: '0.875rem',
                       outline: 'none',
                       appearance: 'none',
@@ -307,30 +308,31 @@ export default function SetupWizard() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {invitedMembers.map((member, i) => (
                 <div key={i} style={{
-                  border: '1px solid #30363d',
+                  border: '1px solid #d1d5db',
                   borderRadius: '12px',
                   padding: '16px 20px',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'space-between'
+                  justifyContent: 'space-between',
+                  backgroundColor: '#ffffff'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{
                       width: '32px',
                       height: '32px',
                       borderRadius: '50%',
-                      backgroundColor: '#161B22',
+                      backgroundColor: '#EAF4EC',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: '#8b949e'
+                      color: '#5E8B6A'
                     }}>
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                         <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                         <circle cx="12" cy="7" r="4" />
                       </svg>
                     </div>
-                    <span style={{ fontSize: '0.875rem', color: '#ffffff' }}>{member.email}</span>
+                    <span style={{ fontSize: '0.875rem', color: '#111827' }}>{member.email}</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <span style={{
@@ -345,7 +347,7 @@ export default function SetupWizard() {
                     </span>
                     <button
                       onClick={() => removeMember(i)}
-                      style={{ background: 'none', border: 'none', color: '#8b949e', cursor: 'pointer', padding: '4px' }}
+                      style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer', padding: '4px' }}
                     >
                       <X size={16} />
                     </button>
@@ -361,12 +363,12 @@ export default function SetupWizard() {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#0B1517',
+      backgroundColor: '#EFF3F8',
       display: 'flex',
       flexDirection: 'column',
       fontFamily: 'Inter, system-ui, sans-serif'
     }}>
-      <Navbar variant="setup" />
+      <Navbar variant="setup" theme="light" />
 
       <div style={{
         flex: 1,
@@ -375,12 +377,27 @@ export default function SetupWizard() {
         alignItems: 'center',
         padding: '0 16px'
       }}>
+        {/* Chef Hat Icon */}
+        <div style={{
+          width: '72px',
+          height: '72px',
+          borderRadius: '9999px',
+          backgroundColor: '#E0EAE2',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginTop: '32px',
+          marginBottom: '16px'
+        }}>
+          <ChefHat size={36} style={{ color: '#5E8B6A' }} strokeWidth={1.5} />
+        </div>
+
         {/* Header Title */}
         <h1 style={{
           fontSize: '2rem',
           fontWeight: 700,
-          color: '#ffffff',
-          marginTop: '60px',
+          color: '#111827',
+          marginTop: '0',
           marginBottom: '32px',
           textAlign: 'center'
         }}>
@@ -396,12 +413,12 @@ export default function SetupWizard() {
         <div style={{
           width: '100%',
           maxWidth: '900px',
-          backgroundColor: '#101A1C',
-          border: '1px solid #30363d',
+          backgroundColor: '#ffffff',
+          border: '1px solid #e5e7eb',
           borderRadius: '16px',
           padding: '40px',
           marginBottom: '24px',
-          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)'
+          boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.05)'
         }}>
           {renderStep()}
         </div>
@@ -413,9 +430,9 @@ export default function SetupWizard() {
               onClick={prevStep}
               disabled={currentStep === 1}
               style={{
-                backgroundColor: 'transparent',
-                color: currentStep === 1 ? '#30363d' : '#8b949e',
-                border: '1px solid #30363d',
+                backgroundColor: '#ffffff',
+                color: currentStep === 1 ? '#d1d5db' : '#111827',
+                border: '1px solid #d1d5db',
                 borderRadius: '8px',
                 padding: '12px 24px',
                 fontSize: '1rem',
@@ -433,7 +450,7 @@ export default function SetupWizard() {
                   width: i + 1 === currentStep ? '24px' : '8px',
                   height: '8px',
                   borderRadius: '999px',
-                  backgroundColor: i + 1 === currentStep ? '#C99C63' : '#30363d',
+                  backgroundColor: i + 1 === currentStep ? '#C99C63' : '#d1d5db',
                   transition: 'all 0.3s ease'
                 }} />
               ))}

@@ -27,17 +27,18 @@ export default function TableCard({
         textAlign: 'left',
         padding: '20px',
         borderRadius: '12px',
-        border: isSelected ? '1px solid #4ade80' : '1px solid #30363d',
-        backgroundColor: isSelected ? 'rgba(74, 222, 128, 0.1)' : '#161b22', // green-subtle or dark-card
+        border: isSelected ? '1px solid #5E8B6A' : '1px solid #e5e7eb',
+        backgroundColor: isSelected ? 'rgba(94, 139, 106, 0.1)' : '#ffffff',
         cursor: 'pointer',
         transition: 'all 0.2s',
-        display: 'block'
+        display: 'block',
+        boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
       }}
       onMouseOver={(e) => {
-        if (!isSelected) e.currentTarget.style.borderColor = '#4b5563'; // dark-border-light
+        if (!isSelected) e.currentTarget.style.borderColor = '#d1d5db';
       }}
       onMouseOut={(e) => {
-        if (!isSelected) e.currentTarget.style.borderColor = '#30363d';
+        if (!isSelected) e.currentTarget.style.borderColor = '#e5e7eb';
       }}
     >
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '16px' }}>
@@ -45,13 +46,13 @@ export default function TableCard({
           width: '40px',
           height: '40px',
           borderRadius: '9999px',
-          backgroundColor: '#0d1117', // dark-bg-secondary
+          backgroundColor: '#f3f4f6',
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
           flexShrink: 0
         }}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ color: '#8b949e' }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ color: '#6b7280' }}>
             <rect x="3" y="4" width="18" height="12" rx="1" />
             <line x1="3" y1="10" x2="21" y2="10" />
             <line x1="9" y1="4" x2="9" y2="16" />
@@ -60,7 +61,7 @@ export default function TableCard({
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <h3 style={{ fontWeight: 600, color: '#ffffff', fontSize: '0.875rem', fontFamily: 'var(--font-sans)', margin: 0 }}>
+            <h3 style={{ fontWeight: 600, color: '#111827', fontSize: '0.875rem', fontFamily: 'var(--font-sans)', margin: 0 }}>
               {name}
             </h3>
             {badge && (
@@ -77,7 +78,7 @@ export default function TableCard({
               </span>
             )}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '8px', fontSize: '0.75rem', color: '#8b949e', fontFamily: 'var(--font-sans)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginTop: '8px', fontSize: '0.75rem', color: '#6b7280', fontFamily: 'var(--font-sans)' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <Users size={13} />
               Capacity: {capacity} seats

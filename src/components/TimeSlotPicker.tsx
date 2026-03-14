@@ -20,7 +20,7 @@ export default function TimeSlotPicker({
 
   return (
     <div style={{ marginTop: '16px', marginBottom: '16px' }}>
-      <h3 style={{ fontSize: '0.875rem', fontWeight: 600, color: '#eab308', marginBottom: '12px', fontFamily: 'var(--font-sans)' }}>
+      <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#111827', marginBottom: '12px', fontFamily: 'var(--font-sans)' }}>
         Preferred Time
       </h3>
       <div style={{
@@ -33,22 +33,22 @@ export default function TimeSlotPicker({
           const isSelected = selectedSlot === slot && !isDisabled
           const isConflict = disabledSlots.includes(slot) && !fullyBooked
 
-          let backgroundColor = 'transparent';
-          let borderColor = '#30363d';
-          let fontColor = '#ffffff';
+          let backgroundColor = '#ffffff';
+          let borderColor = '#d1d5db';
+          let fontColor = '#111827';
 
           if (isSelected) {
-            backgroundColor = '#0B1517';
-            borderColor = '#4ade80';
-            fontColor = '#4ade80';
+            backgroundColor = '#5E8B6A';
+            borderColor = '#5E8B6A';
+            fontColor = '#ffffff';
           } else if (isConflict) {
-            backgroundColor = 'transparent';
+            backgroundColor = '#ffffff';
             borderColor = 'rgba(239, 68, 68, 0.5)';
             fontColor = '#f87171';
           } else if (isDisabled) {
-            backgroundColor = 'transparent';
-            borderColor = 'rgba(48, 54, 61, 0.3)';
-            fontColor = 'rgba(139, 148, 158, 0.4)';
+            backgroundColor = '#ffffff';
+            borderColor = '#e5e7eb';
+            fontColor = '#9ca3af';
           }
 
           return (

@@ -92,19 +92,19 @@ export default function ReservationWizard() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#0B1517', display: 'flex', flexDirection: 'column', fontFamily: 'var(--font-sans)' }}>
+    <div style={{ minHeight: '100vh', backgroundColor: '#F8F9FA', display: 'flex', flexDirection: 'column', fontFamily: 'var(--font-sans)' }}>
       {/* Header */}
       <div style={{ textAlign: 'center', paddingTop: '40px', paddingBottom: '24px', paddingLeft: '16px', paddingRight: '16px' }}>
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
-          <div style={{ width: '56px', height: '56px', borderRadius: '9999px', border: '2px solid #30363d', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ color: '#ffffff' }}>
+          <div style={{ width: '56px', height: '56px', borderRadius: '9999px', backgroundColor: '#EAF4EC', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{ color: '#5E8B6A' }}>
               <path d="M6 13.87A4 4 0 0 1 7.41 6a5.11 5.11 0 0 1 1.05-1.54 5 5 0 0 1 7.08 0A5.11 5.11 0 0 1 16.59 6 4 4 0 0 1 18 13.87V21H6Z" />
               <line x1="6" y1="17" x2="18" y2="17" />
             </svg>
           </div>
         </div>
-        <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#ffffff', margin: 0 }}>Table Reservation</h1>
-        <p style={{ color: '#8b949e', fontSize: '0.875rem', marginTop: '4px' }}>
+        <h1 style={{ fontSize: '1.75rem', fontWeight: 700, color: '#111827', margin: 0 }}>Table Reservation</h1>
+        <p style={{ color: '#6b7280', fontSize: '0.875rem', marginTop: '4px' }}>
           Book your perfect dining experience in just a few steps.
         </p>
       </div>
@@ -118,25 +118,32 @@ export default function ReservationWizard() {
 
         {/* Step Content */}
         <div style={{ flex: 1, paddingBottom: '16px', paddingTop: '8px' }}>
-          <div className="animate-fade-in" style={{ backgroundColor: '#101A1C', border: '1px solid #30363d', borderRadius: '16px', padding: '32px' }}>
+          <div className="animate-fade-in" style={{ 
+            backgroundColor: '#ffffff', 
+            border: '1px solid #e5e7eb', 
+            borderRadius: '16px', 
+            padding: '40px',
+            boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)'
+          }}>
             {renderStep()}
           </div>
         </div>
 
         {/* Navigation */}
-        <div style={{ padding: '24px 0' }}>
+        <div style={{ padding: '24px 0', marginBottom: '40px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <button
               onClick={prevStep}
               style={{
                 padding: '10px 24px',
                 borderRadius: '8px',
-                border: '1px solid #30363d',
-                backgroundColor: 'transparent',
-                color: '#ffffff',
+                border: '1px solid #d1d5db',
+                backgroundColor: '#ffffff',
+                color: '#111827',
                 fontSize: '0.875rem',
-                fontWeight: 500,
-                cursor: 'pointer'
+                fontWeight: 600,
+                cursor: 'pointer',
+                boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
               }}
             >
               Back
@@ -152,7 +159,7 @@ export default function ReservationWizard() {
                     transition: 'all 0.3s ease',
                     width: i + 1 === currentStep ? '24px' : '8px',
                     height: '8px',
-                    backgroundColor: i + 1 === currentStep ? '#eab308' : i + 1 < currentStep ? '#4ade80' : '#30363d'
+                    backgroundColor: i + 1 === currentStep ? '#5E8B6A' : i + 1 < currentStep ? '#5E8B6A' : '#e5e7eb'
                   }}
                 />
               ))}
@@ -167,7 +174,10 @@ export default function ReservationWizard() {
                 fontSize: '0.875rem',
                 fontWeight: 600,
                 border: 'none',
-                cursor: 'pointer'
+                cursor: 'pointer',
+                backgroundColor: '#C99C63',
+                color: '#ffffff',
+                boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)'
               }}
             >
               {getNextLabel()}
