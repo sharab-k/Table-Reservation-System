@@ -234,6 +234,31 @@
 }
 
 /* ========================================= */
+/* Premium Reservation Flow                  */
+/* ========================================= */
+
+@media (max-width: 768px) {
+  .res-prem-time-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+  }
+  .res-prem-table-grid,
+  .res-prem-contact-grid,
+  .res-prem-review-grid,
+  .res-prem-payment-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .res-prem-table-header {
+    flex-wrap: wrap !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .res-prem-time-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* ========================================= */
 /* Section 4: Dashboards                     */
 /* ========================================= */
 

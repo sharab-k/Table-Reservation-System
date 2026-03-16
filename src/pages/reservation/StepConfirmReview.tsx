@@ -16,7 +16,7 @@ export default function StepConfirmReview({ data, onEdit }: StepConfirmReviewPro
         Please review your booking details
       </p>
 
-      <div style={{
+      <div className="res-review-grid" style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
         gap: '24px'
