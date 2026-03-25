@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Calendar, Info, Minus, Plus, ChefHat, Users, MapPin, Lock, Pencil, Clock, User, Mail, Phone } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { api } from '../services/api'
 
 export default function PremiumReservation() {
   const navigate = useNavigate()
@@ -10,6 +11,11 @@ export default function PremiumReservation() {
 
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
   const [hoveredSlot, setHoveredSlot] = useState<string | null>(null)
+
+  const [date, setDate] = useState('18/02/2026')
+  const [contact, setContact] = useState({ firstName: '', lastName: '', email: '', phone: '', specialRequest: '' })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const timeSlots = [
     { time: '17:00', status: 'available' },
     { time: '17:30', status: 'booked' },
@@ -41,17 +47,44 @@ export default function PremiumReservation() {
     ]
   }
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step < 5) {
       setStep(step + 1)
     } else if (step === 5) {
-      navigate('/premium-booking-confirmed', { 
-        state: { 
-          selectedTime, 
-          guests, 
-          tableName: Object.values(tables).flat().find(t => t.id === selectedTable)?.name 
-        } 
-      })
+      try {
+        setLoading(true)
+        setError(null)
+
+        const [day, month, year] = date.split('/')
+        const formattedDate = `${year}-${month}-${day}`
+
+        // Premium members have priority. Our backend automatically handles
+        // overbooking logic if `isVip` is true in the JWT context inside the RPC.
+        await api.post('/reservations', {
+          reservationDate: formattedDate,
+          startTime: selectedTime || '17:30',
+          partySize: guests,
+          tableId: selectedTable ? String(selectedTable) : null,
+          guestFirstName: contact.firstName || 'Premium',
+          guestLastName: contact.lastName || 'Member',
+          guestEmail: contact.email || 'premium@example.com',
+          guestPhone: contact.phone || '',
+          specialRequests: contact.specialRequest || '',
+          source: 'website'
+        })
+        
+        navigate('/premium-booking-confirmed', { 
+          state: { 
+            selectedTime, 
+            guests, 
+            tableName: Object.values(tables).flat().find(t => t.id === selectedTable)?.name 
+          } 
+        })
+      } catch (err: any) {
+        setError(err.response?.data?.error || 'Failed to process premium reservation.')
+      } finally {
+        setLoading(false)
+      }
     }
   }
 
@@ -133,6 +166,11 @@ export default function PremiumReservation() {
         </div>
 
         {/* Inner Card */}
+        {error && (
+          <div style={{ backgroundColor: '#2d1416', color: '#ff7b72', border: '1px solid #ff7b72', padding: '12px', borderRadius: '8px', marginBottom: '16px', fontSize: '0.875rem', textAlign: 'center' }}>
+            {error}
+          </div>
+        )}
         <div style={{
           backgroundColor: '#101A1C',
           borderRadius: '16px',
@@ -153,6 +191,8 @@ export default function PremiumReservation() {
                     <input 
                       type="text" 
                       placeholder="18/02/2026"
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
                       style={{
                         width: '100%',
                         padding: '16px',
@@ -461,6 +501,8 @@ export default function PremiumReservation() {
                   <input 
                     type="text"
                     placeholder="John"
+                    value={contact.firstName}
+                    onChange={(e) => setContact({...contact, firstName: e.target.value})}
                     style={{
                       width: '100%',
                       padding: '16px',
@@ -479,6 +521,8 @@ export default function PremiumReservation() {
                   <input 
                     type="text"
                     placeholder="Doe"
+                    value={contact.lastName}
+                    onChange={(e) => setContact({...contact, lastName: e.target.value})}
                     style={{
                       width: '100%',
                       padding: '16px',
@@ -497,6 +541,8 @@ export default function PremiumReservation() {
                   <input 
                     type="email"
                     placeholder="johndoe@example.com"
+                    value={contact.email}
+                    onChange={(e) => setContact({...contact, email: e.target.value})}
                     style={{
                       width: '100%',
                       padding: '16px',
@@ -515,6 +561,8 @@ export default function PremiumReservation() {
                   <input 
                     type="tel"
                     placeholder="+1 (555) 000-000"
+                    value={contact.phone}
+                    onChange={(e) => setContact({...contact, phone: e.target.value})}
                     style={{
                       width: '100%',
                       padding: '16px',
@@ -534,6 +582,8 @@ export default function PremiumReservation() {
                 <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, marginBottom: '8px' }}>Special Request</label>
                 <textarea 
                   placeholder="Lorem ipsum is simply dummy text"
+                  value={contact.specialRequest}
+                  onChange={(e) => setContact({...contact, specialRequest: e.target.value})}
                   style={{
                     width: '100%',
                     padding: '16px',
@@ -648,7 +698,7 @@ export default function PremiumReservation() {
                     </div>
                     <div>
                       <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: '0 0 8px 0' }}>Party size</h3>
-                      <span style={{ fontSize: '0.875rem' }}>2 Guests</span>
+                      <span style={{ fontSize: '0.875rem' }}>{guests} Guests</span>
                     </div>
                   </div>
                 </div>
@@ -678,7 +728,7 @@ export default function PremiumReservation() {
                     <div>
                       <h3 style={{ fontSize: '1rem', fontWeight: 600, margin: '0 0 8px 0' }}>Date & Time</h3>
                       <div className="res-prem-details-row" style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '0.875rem' }}>
-                        <span>Thu, Mar 5, 2026</span>
+                        <span>{date}</span>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                           <Clock size={16} />
                           <span>{selectedTime || 'Not selected'}</span>
@@ -716,14 +766,14 @@ export default function PremiumReservation() {
                       <div className="res-prem-details-row" style={{ display: 'flex', alignItems: 'center', gap: '16px', fontSize: '0.875rem', marginBottom: '12px', whiteSpace: 'nowrap' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <Mail size={16} />
-                          <span>johndoe@example.com</span>
+                          <span>{contact.email || 'johndoe@example.com'}</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <Phone size={16} />
-                          <span>+1 (555) 000-000</span>
+                          <span>{contact.phone || '+1 (555) 000-000'}</span>
                         </div>
                       </div>
-                      <p style={{ fontSize: '0.875rem', margin: 0 }}>Lorem ipsum is simply dummy text</p>
+                      <p style={{ fontSize: '0.875rem', margin: 0 }}>{contact.specialRequest || 'No special requests'}</p>
                     </div>
                   </div>
                 </div>
@@ -741,15 +791,15 @@ export default function PremiumReservation() {
                 
                 {/* Left Column: Payment Methods */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <button style={{
-                    backgroundColor: '#161F21',
+                  <button disabled={loading} onClick={handleNext} style={{
+                    backgroundColor: loading ? '#9ca3af' : '#161F21',
                     border: '1px solid rgba(255,255,255,0.05)',
                     borderRadius: '8px',
                     padding: '24px',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    cursor: 'pointer',
+                    cursor: loading ? 'not-allowed' : 'pointer',
                     color: '#ffffff',
                     fontSize: '1.25rem',
                     fontWeight: 600

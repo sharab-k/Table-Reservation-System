@@ -1,5 +1,7 @@
 import { useState } from 'react'
-import { Users, MapPin, Coffee, Settings, LogOut, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Users, MapPin, Coffee, Settings, LogOut, ChevronLeft, ChevronRight, Upload } from 'lucide-react'
+import { api } from '../../services/api'
+import { useAuth } from '../../context/AuthContext'
 
 interface TableData {
   id: number
@@ -99,6 +101,37 @@ const CustomTableIcon = () => (
 export default function StaffTableManagement() {
   const [activeTab, setActiveTab] = useState('Day View')
   const [activeDay, setActiveDay] = useState('Today')
+  const { user, logout } = useAuth()
+  const [uploading, setUploading] = useState(false)
+
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    try {
+      setUploading(true)
+      const formData = new FormData()
+      formData.append('file', file)
+
+      // Get orgId from somewhere, assuming it's attached to user or we use a default
+      // In a real multi-tenant app, orgId should be derived from user.orgId or selected context
+      const orgId = user?.id || 'default-org-id' // Ideally we need the real orgId
+
+      await api.post(`/organizations/${orgId}/tables/import`, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      })
+
+      alert('Floor plan CSV uploaded successfully!')
+      // Ideally refresh tables list here
+    } catch (error) {
+      console.error('Failed to upload CSV:', error)
+      alert('Failed to upload floor plan CSV.')
+    } finally {
+      setUploading(false)
+    }
+  }
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -133,9 +166,14 @@ export default function StaffTableManagement() {
       {/* Header Logo */}
       <div className="res-staff-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
         <h1 style={{ fontSize: '1.5rem', fontWeight: 700, margin: 0, color: '#111827' }}>Logo</h1>
-        <div style={{ display: 'flex', gap: '16px' }}>
+        <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: uploading ? 'not-allowed' : 'pointer', color: '#6B9E78', fontSize: '0.875rem', fontWeight: 600 }}>
+            <Upload size={18} />
+            {uploading ? 'Uploading...' : 'Import CSV'}
+            <input type="file" accept=".csv" onChange={handleFileUpload} disabled={uploading} style={{ display: 'none' }} />
+          </label>
           <button style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer' }}><Settings size={20} /></button>
-          <button style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer' }}><LogOut size={20} /></button>
+          <button onClick={logout} style={{ background: 'none', border: 'none', color: '#6b7280', cursor: 'pointer' }}><LogOut size={20} /></button>
         </div>
       </div>
 

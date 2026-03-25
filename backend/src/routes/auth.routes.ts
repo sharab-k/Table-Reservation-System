@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { authController } from '../controllers/auth.controller';
 import { authenticate } from '../middleware/auth';
 import { validate } from '../middleware/validator';
-import { signupSchema, loginSchema, staffLoginSchema, forgotPasswordSchema, resetPasswordSchema, refreshTokenSchema, acceptInviteSchema } from '../validators/auth.validator';
+import { signupSchema, loginSchema, staffLoginSchema, forgotPasswordSchema, resetPasswordSchema, refreshTokenSchema, acceptInviteSchema, customerSignupSchema, customerLoginSchema } from '../validators/auth.validator';
 import { staffService } from '../services/staff.service';
 import { authLimiter } from '../middleware/rateLimiter';
 
@@ -14,6 +14,8 @@ router.use(authLimiter);
 // Public routes
 router.post('/signup', validate(signupSchema), (req, res, next) => authController.signup(req, res, next));
 router.post('/login', validate(loginSchema), (req, res, next) => authController.login(req, res, next));
+router.post('/customer-signup', validate(customerSignupSchema), (req, res, next) => authController.customerSignup(req, res, next));
+router.post('/customer-login', validate(customerLoginSchema), (req, res, next) => authController.customerLogin(req, res, next));
 router.post('/staff-login', validate(staffLoginSchema), (req, res, next) => authController.staffLogin(req, res, next));
 router.post('/forgot-password', validate(forgotPasswordSchema), (req, res, next) => authController.forgotPassword(req, res, next));
 router.post('/reset-password', validate(resetPasswordSchema), (req, res, next) => authController.resetPassword(req, res, next));

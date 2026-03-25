@@ -12,6 +12,24 @@ export class AuthController {
     }
   }
 
+  async customerSignup(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const result = await authService.customerSignup(req.body);
+      res.status(201).json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async customerLogin(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const result = await authService.customerLogin(req.body);
+      res.json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async login(req: AuthenticatedRequest, res: Response, next: NextFunction) {
     try {
       const result = await authService.login(req.body);

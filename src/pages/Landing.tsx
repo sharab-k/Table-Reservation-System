@@ -1,7 +1,8 @@
 import { useNavigate } from 'react-router-dom'
 import { Calendar, Clock } from 'lucide-react'
 import Navbar from '../components/Navbar'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { api } from '../services/api'
 
 import heroBg from '../assets/mask-group.png'
 
@@ -10,6 +11,25 @@ export default function Landing() {
   const [date, setDate] = useState('19/02/2026')
   const [time, setTime] = useState('17:00')
   const [guests, setGuests] = useState('2')
+  const [orgName, setOrgName] = useState('Our Restaurant')
+
+  useEffect(() => {
+    const fetchOrg = async () => {
+      try {
+        let slug = window.location.hostname.split('.')[0]
+        if (slug === 'localhost' || slug === '127') {
+          slug = 'demo-restaurant'
+        }
+        const { data } = await api.get(`/public/${slug}`)
+        if (data.organization?.name) {
+          setOrgName(data.organization.name)
+        }
+      } catch (err) {
+        console.error('Failed to fetch org details', err)
+      }
+    }
+    fetchOrg()
+  }, [])
 
   return (
     <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
@@ -66,7 +86,7 @@ export default function Landing() {
                   fontFamily: 'var(--font-sans)',
                 }}
               >
-                Welcome
+                Welcome to {orgName}
               </h1>
               <p
                 style={{
@@ -199,7 +219,7 @@ export default function Landing() {
                 </div>
 
                 <button
-                  onClick={() => navigate('/book-a-table')}
+                  onClick={() => navigate('/book-a-table', { state: { date, time, partySize: guests } })}
                   className="btn-gold"
                   style={{
                     width: '100%',

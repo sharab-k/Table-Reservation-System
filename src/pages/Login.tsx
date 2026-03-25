@@ -1,16 +1,46 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff } from 'lucide-react'
+import { api } from '../services/api'
+import { useAuth } from '../context/AuthContext'
 
 export default function Login() {
   const navigate = useNavigate()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const { login } = useAuth()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    navigate('/welcome')
+    setError('')
+    setLoading(true)
+
+    try {
+      const response = await api.post('/auth/customer-login', { email, password })
+      const { token, user } = response.data.data
+      
+      login(token, user)
+      
+      if (user.role === 'admin' || user.role === 'super_admin') {
+        navigate('/admin')
+      } else if (user.role === 'manager' || user.role === 'host') {
+        navigate('/staff/tables')
+      } else {
+        // Customer role: check VIP status
+        if (user.isVip) {
+          navigate('/dashboard') // Or /premium-reserve depending on desired flow
+        } else {
+          navigate('/dashboard')
+        }
+      }
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Invalid email or password')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -48,6 +78,12 @@ export default function Login() {
         <p style={{ fontSize: '0.875rem', color: '#8b949e', textAlign: 'center', margin: '0 0 20px 0', lineHeight: 1.4 }}>
           Log in to access your account and manage everything in one place.
         </p>
+
+        {error && (
+          <div style={{ backgroundColor: '#2d1416', color: '#ff7b72', border: '1px solid #ff7b72', padding: '12px', borderRadius: '8px', marginBottom: '16px', fontSize: '0.875rem', textAlign: 'center' }}>
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column' }}>
           {/* Email Field */}
@@ -132,23 +168,23 @@ export default function Login() {
           </div>
 
           {/* Sign In Button */}
-          <button type="submit" style={{
+          <button type="submit" disabled={loading} style={{
             width: '100%',
             height: '46px',
-            backgroundColor: '#C99C63',
-            color: '#ffffff', // changed to white as requested
+            backgroundColor: loading ? '#b58b57' : '#C99C63',
+            color: '#ffffff',
             border: 'none',
             borderRadius: '8px',
             fontSize: '0.9375rem',
             fontWeight: 600,
-            cursor: 'pointer',
+            cursor: loading ? 'not-allowed' : 'pointer',
             fontFamily: 'inherit',
             transition: 'background-color 0.2s',
           }}
-          onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#b58b57'}
-          onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#C99C63'}
+          onMouseOver={(e) => !loading && (e.currentTarget.style.backgroundColor = '#b58b57')}
+          onMouseOut={(e) => !loading && (e.currentTarget.style.backgroundColor = '#C99C63')}
           >
-            Sign In
+            {loading ? 'Logging in...' : 'Sign In'}
           </button>
         </form>
 

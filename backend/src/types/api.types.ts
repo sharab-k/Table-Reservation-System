@@ -171,6 +171,19 @@ export interface LoginDto {
   password: string;
 }
 
+export interface CustomerSignupDto {
+  firstName: string;
+  lastName?: string;
+  email: string;
+  password: string;
+  phone?: string;
+}
+
+export interface CustomerLoginDto {
+  email: string;
+  password: string;
+}
+
 export interface StaffLoginDto {
   email: string;
   password: string;
@@ -183,6 +196,7 @@ export interface AuthResponse {
     email: string;
     role: UserRole;
     name: string;
+    isVip?: boolean;
   };
   token: string;
   refreshToken?: string;

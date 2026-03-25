@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 import { supabaseAdmin } from '../config/database';
 import { generateToken, generateRefreshToken } from '../middleware/auth';
 import { generateUniqueSlug } from '../utils/slug';
-import { SignupDto, LoginDto, StaffLoginDto, AuthResponse, JwtPayload } from '../types/api.types';
+import { SignupDto, LoginDto, StaffLoginDto, AuthResponse, JwtPayload, CustomerSignupDto, CustomerLoginDto } from '../types/api.types';
 import { UserRole } from '../types/enums';
 import { AppError, NotFoundError, ConflictError } from '../middleware/errorHandler';
 import { env } from '../config/env';
@@ -363,6 +363,123 @@ export class AuthService {
       if (error instanceof AppError) throw error;
       throw new AppError('Invalid or expired refresh token', 401);
     }
+  }
+
+  // ─── Customer Auth ───────────────────────────────────
+
+  /**
+   * Register a new customer member.
+   */
+  async customerSignup(dto: CustomerSignupDto): Promise<AuthResponse> {
+    const { data: existingCustomer } = await supabaseAdmin
+      .from('customers')
+      .select('id')
+      .eq('email', dto.email)
+      .single();
+
+    if (existingCustomer) {
+      throw new ConflictError('A customer account with this email already exists');
+    }
+
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+      email: dto.email,
+      password: dto.password,
+      email_confirm: true,
+      user_metadata: {
+        name: `${dto.firstName} ${dto.lastName || ''}`.trim(),
+        role: UserRole.CUSTOMER,
+      },
+    });
+
+    if (authError || !authData.user) {
+      throw new AppError(authError?.message || 'Failed to create user', 500);
+    }
+
+    const userId = authData.user.id;
+
+    const { data: customer, error: customerError } = await supabaseAdmin
+      .from('customers')
+      .insert({
+        user_id: userId,
+        first_name: dto.firstName,
+        last_name: dto.lastName || null,
+        email: dto.email,
+        phone: dto.phone || null,
+        is_vip: false, // Default to non-premium member
+      })
+      .select()
+      .single();
+
+    if (customerError || !customer) {
+      await supabaseAdmin.auth.admin.deleteUser(userId);
+      throw new AppError('Failed to create customer profile', 500);
+    }
+
+    const token = generateToken({
+      sub: userId,
+      email: dto.email,
+      role: UserRole.CUSTOMER,
+    });
+
+    const refreshToken = generateRefreshToken(userId);
+
+    return {
+      user: {
+        id: userId,
+        email: dto.email,
+        role: UserRole.CUSTOMER,
+        name: `${dto.firstName} ${dto.lastName || ''}`.trim(),
+        isVip: customer.is_vip,
+      },
+      token,
+      refreshToken,
+    };
+  }
+
+  /**
+   * Login for customer members.
+   */
+  async customerLogin(dto: CustomerLoginDto): Promise<AuthResponse> {
+    const { data: authData, error: authError } = await supabaseAdmin.auth.signInWithPassword({
+      email: dto.email,
+      password: dto.password,
+    });
+
+    if (authError || !authData.user) {
+      throw new AppError('Invalid email or password', 401);
+    }
+
+    const userId = authData.user.id;
+
+    const { data: customer, error: customerError } = await supabaseAdmin
+      .from('customers')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+
+    if (customerError || !customer) {
+      throw new AppError('No customer profile found for this email', 404);
+    }
+
+    const token = generateToken({
+      sub: userId,
+      email: dto.email,
+      role: UserRole.CUSTOMER,
+    });
+
+    const refreshToken = generateRefreshToken(userId);
+
+    return {
+      user: {
+        id: userId,
+        email: dto.email,
+        role: UserRole.CUSTOMER,
+        name: `${customer.first_name} ${customer.last_name || ''}`.trim(),
+        isVip: customer.is_vip,
+      },
+      token,
+      refreshToken,
+    };
   }
 }
 

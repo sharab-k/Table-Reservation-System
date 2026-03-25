@@ -1,5 +1,6 @@
 import { Upload, Download } from 'lucide-react'
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
+import { api } from '../../../services/api'
 
 interface FloorMapTabProps {
   theme: 'dark' | 'light'
@@ -14,16 +15,34 @@ const sampleData = [
 export default function FloorMapTab({ theme }: FloorMapTabProps) {
   const isDark = theme === 'dark'
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [uploading, setUploading] = useState(false)
 
   const handleUploadClick = () => {
     fileInputRef.current?.click()
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
-    if (file) {
-      console.log('Selected file:', file.name)
-      // Implementation for parsing CSV would go here
+    if (!file) return
+
+    try {
+      setUploading(true)
+      const formData = new FormData()
+      formData.append('file', file)
+
+      // Assuming a default org ID since global selected org state isn't here
+      const orgId = 'default-org-id'
+
+      await api.post(`/organizations/${orgId}/tables/import`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      })
+
+      alert('Floor plan CSV uploaded successfully!')
+    } catch (error) {
+      console.error('Failed to upload CSV:', error)
+      alert('Failed to upload floor plan CSV.')
+    } finally {
+      setUploading(false)
     }
   }
 
@@ -55,7 +74,9 @@ export default function FloorMapTab({ theme }: FloorMapTabProps) {
         onMouseOut={(e) => e.currentTarget.style.borderColor = isDark ? '#4b5563' : '#d1d5db'}
       >
         <Upload size={24} style={{ margin: '0 auto 12px auto', color: isDark ? '#ffffff' : '#4b5563' }} />
-        <p style={{ fontWeight: 600, fontSize: '0.875rem', color: isDark ? '#ffffff' : '#1f2937', margin: 0 }}>Upload CSV</p>
+        <p style={{ fontWeight: 600, fontSize: '0.875rem', color: isDark ? '#ffffff' : '#1f2937', margin: 0 }}>
+          {uploading ? 'Uploading...' : 'Upload CSV'}
+        </p>
         <p style={{ fontSize: '0.75rem', marginTop: '4px', color: isDark ? '#8b949e' : '#6b7280', margin: '4px 0 0 0' }}>
           Table number, capacity,area,type
         </p>

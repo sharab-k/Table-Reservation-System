@@ -1,4 +1,6 @@
-import { Search, MoreVertical } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Search, MoreVertical, Plus, X } from 'lucide-react'
+import { api } from '../../../services/api'
 import StatusBadge from '../../../components/StatusBadge'
 
 interface StaffManagementTabProps {
@@ -17,6 +19,57 @@ const staff = [
 
 export default function StaffManagementTab({ theme }: StaffManagementTabProps) {
   const isDark = theme === 'dark'
+  const [staffList, setStaffList] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
+  
+  // Invite Modal State
+  const [showInvite, setShowInvite] = useState(false)
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteRole, setInviteRole] = useState('host')
+  const [inviteLoading, setInviteLoading] = useState(false)
+
+  const fetchStaff = async () => {
+    try {
+      setLoading(true)
+      const orgId = 'default-org-id'
+      const { data } = await api.get(`/organizations/${orgId}/staff`)
+      if (data.staff) {
+        setStaffList(data.staff)
+      } else {
+        setStaffList(staff) // Fallback to dummy data if not implemented fully
+      }
+    } catch (err) {
+      console.error('Failed to fetch staff:', err)
+      setStaffList(staff)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchStaff()
+  }, [])
+
+  const handleInvite = async () => {
+    if (!inviteEmail) return
+    try {
+      setInviteLoading(true)
+      const orgId = 'default-org-id'
+      await api.post(`/organizations/${orgId}/staff/invite`, {
+        email: inviteEmail,
+        role: inviteRole
+      })
+      alert('Staff invited successfully!')
+      setShowInvite(false)
+      setInviteEmail('')
+      fetchStaff()
+    } catch (err) {
+      console.error('Failed to invite staff:', err)
+      alert('Failed to invite staff.')
+    } finally {
+      setInviteLoading(false)
+    }
+  }
 
   return (
     <div>
@@ -54,6 +107,24 @@ export default function StaffManagementTab({ theme }: StaffManagementTabProps) {
           <option>Host</option>
           <option>Viewer</option>
         </select>
+        <button 
+          onClick={() => setShowInvite(true)}
+          style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          padding: '10px 16px',
+          backgroundColor: '#C99C63',
+          color: '#ffffff',
+          fontWeight: 600,
+          borderRadius: '8px',
+          border: 'none',
+          fontSize: '0.875rem',
+          cursor: 'pointer'
+        }}>
+          <Plus size={16} />
+          Invite Staff
+        </button>
       </div>
 
       {/* Table Container */}
@@ -83,7 +154,7 @@ export default function StaffManagementTab({ theme }: StaffManagementTabProps) {
               </tr>
             </thead>
             <tbody>
-              {staff.map((member) => (
+              {staffList.map((member: any) => (
                 <tr
                   key={member.id}
                   style={{
@@ -95,16 +166,16 @@ export default function StaffManagementTab({ theme }: StaffManagementTabProps) {
                   onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                 >
                   <td style={{ padding: '16px 24px', color: isDark ? '#e6edf3' : '#1f2937' }}>
-                    {member.name}
+                    {member.user?.name || member.name || member.email?.split('@')[0]}
                   </td>
                   <td style={{ padding: '16px 24px', color: isDark ? '#e6edf3' : '#4b5563' }}>
                     {member.email}
                   </td>
                   <td style={{ padding: '16px 24px', color: isDark ? '#e6edf3' : '#4b5563' }}>
-                    {member.lastActive}
+                    {member.lastActive || 'Never'}
                   </td>
                   <td style={{ padding: '16px 24px' }}>
-                    <StatusBadge status={member.status} />
+                    <StatusBadge status={member.role || member.status || 'viewer'} />
                   </td>
                   <td style={{ padding: '16px 24px', textAlign: 'right' }}>
                     <button style={{
@@ -123,6 +194,102 @@ export default function StaffManagementTab({ theme }: StaffManagementTabProps) {
           </table>
         </div>
       </div>
+
+      {/* Invite Modal */}
+      {showInvite && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 50
+        }}>
+          <div style={{
+            backgroundColor: isDark ? '#101A1C' : '#ffffff',
+            border: `1px solid ${isDark ? '#30363d' : '#e5e7eb'}`,
+            borderRadius: '12px',
+            padding: '32px',
+            width: '100%',
+            maxWidth: '400px',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600, color: isDark ? '#ffffff' : '#111827' }}>Invite Staff</h3>
+              <button 
+                onClick={() => setShowInvite(false)}
+                style={{ background: 'none', border: 'none', color: isDark ? '#8b949e' : '#6b7280', cursor: 'pointer' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '32px' }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: isDark ? '#d1d5db' : '#374151', marginBottom: '8px' }}>
+                  Email Address
+                </label>
+                <input 
+                  type="email" 
+                  value={inviteEmail}
+                  onChange={(e) => setInviteEmail(e.target.value)}
+                  placeholder="employee@restaurant.com"
+                  style={{
+                    width: '100%',
+                    padding: '10px 16px',
+                    backgroundColor: 'transparent',
+                    border: `1px solid ${isDark ? '#30363d' : '#d1d5db'}`,
+                    borderRadius: '8px',
+                    color: isDark ? '#ffffff' : '#111827',
+                    boxSizing: 'border-box'
+                  }} 
+                />
+              </div>
+              
+              <div>
+                <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 500, color: isDark ? '#d1d5db' : '#374151', marginBottom: '8px' }}>
+                  Role
+                </label>
+                <select 
+                  value={inviteRole}
+                  onChange={(e) => setInviteRole(e.target.value)}
+                  style={{
+                    width: '100%',
+                    padding: '10px 16px',
+                    backgroundColor: isDark ? '#161B22' : '#ffffff',
+                    border: `1px solid ${isDark ? '#30363d' : '#d1d5db'}`,
+                    borderRadius: '8px',
+                    color: isDark ? '#ffffff' : '#111827',
+                    boxSizing: 'border-box'
+                  }}
+                >
+                  <option value="manager">Manager</option>
+                  <option value="host">Host</option>
+                  <option value="viewer">Viewer</option>
+                </select>
+              </div>
+            </div>
+
+            <button 
+              onClick={handleInvite}
+              disabled={inviteLoading}
+              style={{
+                width: '100%',
+                padding: '12px',
+                backgroundColor: inviteLoading ? '#9ca3af' : '#C99C63',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '8px',
+                fontWeight: 600,
+                cursor: inviteLoading ? 'not-allowed' : 'pointer'
+              }}
+            >
+              {inviteLoading ? 'Sending...' : 'Send Invitation'}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

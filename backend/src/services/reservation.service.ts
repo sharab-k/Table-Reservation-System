@@ -99,15 +99,18 @@ export class ReservationService {
 
     // Create or find customer
     let customerId: string | null = null;
+    let isPremium = false;
+    
     if (dto.guestEmail) {
       const { data: existingCustomer } = await supabaseAdmin
         .from('customers')
-        .select('id')
+        .select('id, is_vip')
         .eq('email', dto.guestEmail)
         .single();
 
       if (existingCustomer) {
         customerId = existingCustomer.id;
+        isPremium = existingCustomer.is_vip;
       } else {
         const { data: newCustomer } = await supabaseAdmin
           .from('customers')
@@ -139,7 +142,8 @@ export class ReservationService {
       p_guest_phone: dto.guestPhone || null,
       p_source: dto.source || 'app',
       p_special_requests: dto.specialRequests || null,
-      p_created_by: createdBy || null
+      p_created_by: createdBy || null,
+      p_is_premium: isPremium
     });
 
     if (error) {

@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { api } from '../../services/api'
 import DarkProgressBar from '../../components/DarkProgressBar'
 import UserStepDateTime from './UserStepDateTime'
 import UserStepTableSelect from './UserStepTableSelect'
@@ -44,16 +45,48 @@ export default function UserReservationWizard() {
   const navigate = useNavigate()
   const [currentStep, setCurrentStep] = useState(1)
   const [data, setData] = useState<ReservationData>(initialData)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const updateData = (updates: Partial<ReservationData>) => {
     setData((prev) => ({ ...prev, ...updates }))
   }
 
-  const nextStep = () => {
+  const nextStep = async () => {
     if (currentStep < TOTAL_STEPS) {
       setCurrentStep(currentStep + 1)
     } else {
-      navigate('/user-booking-confirmed', { state: data })
+      try {
+        setLoading(true)
+        setError(null)
+        
+        // Convert date DD/MM/YYYY to YYYY-MM-DD
+        const [day, month, year] = data.date.split('/')
+        const formattedDate = `${year}-${month}-${day}`
+        
+        const payload = {
+          reservationDate: formattedDate,
+          startTime: data.time || '17:30',
+          partySize: data.guests,
+          tableId: data.tableId || null,
+          guestFirstName: data.firstName || 'Member',
+          guestLastName: data.lastName || '',
+          guestEmail: data.email || 'member@example.com',
+          guestPhone: data.phone || '',
+          specialRequests: data.specialRequest || '',
+          source: 'website'
+        }
+
+        // Authenticated users post to /reservations. 
+        // We assume default restaurant ID for now.
+        await api.post('/reservations', payload)
+        
+        navigate('/user-booking-confirmed', { state: data })
+      } catch (err: any) {
+        setError(err.response?.data?.error || 'Failed to confirm reservation. Please try again.')
+      } finally {
+        setLoading(false)
+      }
     }
   }
 
@@ -115,6 +148,12 @@ export default function UserReservationWizard() {
           <DarkProgressBar currentStep={currentStep} totalSteps={TOTAL_STEPS} percentage={percentage} />
         </div>
 
+        {error && (
+          <div style={{ backgroundColor: '#2d1416', color: '#ff7b72', border: '1px solid #ff7b72', padding: '12px', borderRadius: '8px', marginTop: '16px', fontSize: '0.875rem', textAlign: 'center' }}>
+            {error}
+          </div>
+        )}
+
         {/* Step Content */}
         <div style={{ flex: 1, paddingBottom: '16px', paddingTop: '8px' }}>
           <div className="animate-fade-in res-wizard-step-content" style={{ 
@@ -166,19 +205,20 @@ export default function UserReservationWizard() {
 
             <button
               onClick={nextStep}
+              disabled={loading}
               style={{
                 padding: '10px 24px',
                 borderRadius: '8px',
                 fontSize: '0.875rem',
                 fontWeight: 600,
                 border: 'none',
-                cursor: 'pointer',
-                backgroundColor: '#C99C63',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                backgroundColor: loading ? '#b58b57' : '#C99C63',
                 color: '#ffffff',
                 boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.2)'
               }}
             >
-              {getNextLabel()}
+              {loading ? 'Confirming...' : getNextLabel()}
             </button>
           </div>
         </div>

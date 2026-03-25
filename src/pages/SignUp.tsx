@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff } from 'lucide-react'
+import { api } from '../services/api'
+import { useAuth } from '../context/AuthContext'
 
 export default function SignUp() {
   const navigate = useNavigate()
+  const { login } = useAuth()
   const [form, setForm] = useState({
     businessName: '',
     ownerName: '',
@@ -13,14 +16,43 @@ export default function SignUp() {
     timezone: 'GMT+0 London',
   })
   const [showPassword, setShowPassword] = useState(false)
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   const handleChange = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }))
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    navigate('/setup')
+    setError('')
+    setLoading(true)
+
+    try {
+      // Split ownerName loosely
+      const nameParts = form.ownerName.split(' ');
+      const firstName = nameParts[0] || '';
+      const lastName = nameParts.slice(1).join(' ') || '';
+
+      const response = await api.post('/auth/customer-signup', {
+        firstName,
+        lastName,
+        email: form.email,
+        password: form.password,
+      });
+
+      const { token, user } = response.data.data;
+      
+      // Store in context
+      login(token, user);
+
+      // Redirect members to dashboard
+      navigate('/dashboard')
+    } catch (err: any) {
+      setError(err.response?.data?.error || 'Failed to sign up. Please try again.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -77,6 +109,12 @@ export default function SignUp() {
         }}>
           Set up table flow for your business
         </p>
+
+        {error && (
+          <div style={{ backgroundColor: '#fee2e2', color: '#b91c1c', padding: '12px', borderRadius: '8px', marginBottom: '16px', fontSize: '0.875rem' }}>
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
@@ -253,20 +291,20 @@ export default function SignUp() {
             </div>
           </div>
 
-          <button type="submit" style={{
+          <button type="submit" disabled={loading} style={{
             width: '100%',
             padding: '14px',
-            backgroundColor: '#C99C63',
+            backgroundColor: loading ? '#9ca3af' : '#C99C63',
             color: '#ffffff',
             border: 'none',
             borderRadius: '10px',
             fontWeight: 600,
             fontSize: '1rem',
-            cursor: 'pointer',
+            cursor: loading ? 'not-allowed' : 'pointer',
             marginTop: '8px',
           }}
           >
-            Sign In
+            {loading ? 'Signing up...' : 'Sign Up'}
           </button>
         </form>
 

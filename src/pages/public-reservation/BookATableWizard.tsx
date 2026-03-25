@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
+import { api } from '../../services/api'
 import DarkProgressBar from '../../components/DarkProgressBar'
 import UserStepDateTime from '../user-reservation/UserStepDateTime'
 import UserStepTableSelect from '../user-reservation/UserStepTableSelect'
@@ -42,18 +43,61 @@ const TOTAL_STEPS = 4
 
 export default function BookATableWizard() {
   const navigate = useNavigate()
+  const location = useLocation()
   const [currentStep, setCurrentStep] = useState(1)
-  const [data, setData] = useState<ReservationData>(initialData)
+  const [data, setData] = useState<ReservationData>(() => {
+    if (location.state) {
+      return {
+        ...initialData,
+        date: location.state.date || initialData.date,
+        time: location.state.time || initialData.time,
+        guests: location.state.partySize ? parseInt(location.state.partySize, 10) : initialData.guests
+      }
+    }
+    return initialData
+  })
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const updateData = (updates: Partial<ReservationData>) => {
     setData((prev) => ({ ...prev, ...updates }))
   }
 
-  const nextStep = () => {
+  const nextStep = async () => {
     if (currentStep < TOTAL_STEPS) {
       setCurrentStep(currentStep + 1)
     } else {
-      navigate('/public-booking-confirmed', { state: data })
+      try {
+        setLoading(true)
+        setError(null)
+        
+        // Convert date DD/MM/YYYY to YYYY-MM-DD
+        const [day, month, year] = data.date.split('/')
+        const formattedDate = `${year}-${month}-${day}`
+        
+        const payload = {
+          reservationDate: formattedDate,
+          startTime: data.time || '17:30',
+          partySize: data.guests,
+          tableId: data.tableId || null,
+          guestFirstName: data.firstName || 'Guest',
+          guestLastName: data.lastName || '',
+          guestEmail: data.email || 'guest@example.com',
+          guestPhone: data.phone || '',
+          specialRequests: data.specialRequest || '',
+          source: 'website'
+        }
+
+        // We use a default restaurant ID or slug if none is in context. Assuming 'the-golden-spoon' for now.
+        // In a real app, this comes from URL params like /:slug/book-a-table
+        await api.post('/public/the-golden-spoon/reserve', payload)
+        
+        navigate('/public-booking-confirmed', { state: data })
+      } catch (err: any) {
+        setError(err.response?.data?.error || 'Failed to confirm reservation. Please try again.')
+      } finally {
+        setLoading(false)
+      }
     }
   }
 
@@ -115,6 +159,12 @@ export default function BookATableWizard() {
           <DarkProgressBar currentStep={currentStep} totalSteps={TOTAL_STEPS} percentage={percentage} />
         </div>
 
+        {error && (
+          <div style={{ backgroundColor: '#2d1416', color: '#ff7b72', border: '1px solid #ff7b72', padding: '12px', borderRadius: '8px', marginTop: '16px', fontSize: '0.875rem', textAlign: 'center' }}>
+            {error}
+          </div>
+        )}
+
         {/* Step Content */}
         <div style={{ flex: 1, paddingBottom: '16px', paddingTop: '8px' }}>
           <div className="animate-fade-in res-wizard-step-content" style={{ 
@@ -166,19 +216,20 @@ export default function BookATableWizard() {
 
             <button
               onClick={nextStep}
+              disabled={loading}
               style={{
                 padding: '10px 24px',
                 borderRadius: '8px',
                 fontSize: '0.875rem',
                 fontWeight: 600,
                 border: 'none',
-                cursor: 'pointer',
-                backgroundColor: '#C99C63',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                backgroundColor: loading ? '#b58b57' : '#C99C63',
                 color: '#ffffff',
                 boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.2)'
               }}
             >
-              {getNextLabel()}
+              {loading ? 'Confirming...' : getNextLabel()}
             </button>
           </div>
         </div>
