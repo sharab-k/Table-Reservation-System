@@ -24,7 +24,7 @@ export interface ReservationData {
 }
 
 const initialData: ReservationData = {
-  date: '18/02/2026',
+  date: new Date().toLocaleDateString('en-CA'),
   time: '',
   guests: 2,
   tableId: null,

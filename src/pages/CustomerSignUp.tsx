@@ -2,16 +2,16 @@ import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff } from 'lucide-react'
 import { api } from '../services/api'
-import { useAuth } from '../context/AuthContext'
 
-export default function Login() {
+export default function CustomerSignUp() {
   const navigate = useNavigate()
+  const [firstName, setFirstName] = useState('')
+  const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  const { login } = useAuth()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -19,25 +19,19 @@ export default function Login() {
     setLoading(true)
 
     try {
-      const response = await api.post('/auth/customer-login', { email, password })
-      const { token, user } = response.data.data
+      // Typically /auth/customer-signup or similar depending on the exact backend route
+      await api.post('/auth/register', {
+        email,
+        password,
+        firstName,
+        lastName,
+        role: 'customer' // ensure role matches your DB schema constraints
+      })
       
-      login(token, user)
-      
-      if (user.role === 'admin' || user.role === 'super_admin') {
-        navigate('/admin')
-      } else if (user.role === 'manager' || user.role === 'host') {
-        navigate('/staff/tables')
-      } else {
-        // Customer role: check VIP status
-        if (user.isVip) {
-          navigate('/dashboard') // Or /premium-reserve depending on desired flow
-        } else {
-          navigate('/dashboard')
-        }
-      }
+      // Successfully registered, send them to login
+      navigate('/login')
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Invalid email or password')
+      setError(err.response?.data?.error || err.response?.data?.message || 'Failed to create account')
     } finally {
       setLoading(false)
     }
@@ -52,31 +46,33 @@ export default function Login() {
       justifyContent: 'center',
       padding: '0 16px',
       position: 'relative',
-      fontFamily: 'var(--font-sans)'
+      fontFamily: 'var(--font-sans)',
+      overflowY: 'auto'
     }}>
       {/* Top Left Logo */}
       <div className="res-auth-logo" style={{ position: 'absolute', top: '40px', left: '40px' }}>
         <h1 style={{ color: '#ffffff', fontSize: '1.5rem', fontWeight: 700, margin: 0 }}>Logo</h1>
       </div>
 
-      {/* Login Box */}
+      {/* SignUp Box */}
       <div className="res-auth-box" style={{
         width: '100%',
-        maxWidth: '520px', // slightly wider
+        maxWidth: '520px',
         backgroundColor: '#101A1C',
         borderRadius: '16px',
-        padding: '32px 48px', // even tighter top/bottom padding
+        padding: '32px 48px',
         boxSizing: 'border-box',
         display: 'flex',
         flexDirection: 'column',
-        justifyContent: 'center', // keep the vertical centering
-        animation: 'slideUp 0.5s ease-out'
+        justifyContent: 'center',
+        animation: 'slideUp 0.5s ease-out',
+        margin: '60px 0' // extra margin for small screens
       }}>
         <h1 style={{ fontSize: '1.875rem', fontWeight: 700, color: '#ffffff', textAlign: 'center', margin: '0 0 6px 0', letterSpacing: '-0.02em' }}>
-          Welcome Back!
+          Create an Account
         </h1>
         <p style={{ fontSize: '0.875rem', color: '#8b949e', textAlign: 'center', margin: '0 0 20px 0', lineHeight: 1.4 }}>
-          Log in to access your account and manage everything in one place.
+          Join us for a seamless booking and dining experience.
         </p>
 
         {error && (
@@ -86,6 +82,62 @@ export default function Login() {
         )}
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column' }}>
+          <div style={{ display: 'flex', gap: '16px', marginBottom: '12px' }}>
+            {/* First Name */}
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#ffffff', margin: '0 0 4px 0' }}>
+                First Name
+              </label>
+              <input
+                type="text"
+                required
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                placeholder="John"
+                style={{
+                  width: '100%',
+                  height: '46px',
+                  backgroundColor: 'transparent',
+                  border: '1px solid #30363d',
+                  borderRadius: '8px',
+                  padding: '0 16px',
+                  color: '#ffffff',
+                  fontSize: '0.875rem',
+                  boxSizing: 'border-box',
+                  outline: 'none',
+                  fontFamily: 'inherit'
+                }}
+              />
+            </div>
+
+            {/* Last Name */}
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#ffffff', margin: '0 0 4px 0' }}>
+                Last Name
+              </label>
+              <input
+                type="text"
+                required
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                placeholder="Doe"
+                style={{
+                  width: '100%',
+                  height: '46px',
+                  backgroundColor: 'transparent',
+                  border: '1px solid #30363d',
+                  borderRadius: '8px',
+                  padding: '0 16px',
+                  color: '#ffffff',
+                  fontSize: '0.875rem',
+                  boxSizing: 'border-box',
+                  outline: 'none',
+                  fontFamily: 'inherit'
+                }}
+              />
+            </div>
+          </div>
+
           {/* Email Field */}
           <div style={{ marginBottom: '12px' }}>
             <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#ffffff', margin: '0 0 4px 0' }}>
@@ -93,12 +145,13 @@ export default function Login() {
             </label>
             <input
               type="email"
+              required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="Enter Email"
               style={{
                 width: '100%',
-                height: '46px', // scaled down properly
+                height: '46px',
                 backgroundColor: 'transparent',
                 border: '1px solid #30363d',
                 borderRadius: '8px',
@@ -113,16 +166,17 @@ export default function Login() {
           </div>
 
           {/* Password Field */}
-          <div style={{ marginBottom: '12px' }}>
+          <div style={{ marginBottom: '24px' }}>
             <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#ffffff', margin: '0 0 4px 0' }}>
               Password
             </label>
             <div style={{ position: 'relative' }}>
               <input
                 type={showPassword ? 'text' : 'password'}
+                required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="Enter Password"
+                placeholder="Create Password"
                 style={{
                   width: '100%',
                   height: '46px',
@@ -160,14 +214,7 @@ export default function Login() {
             </div>
           </div>
 
-          {/* Forgot Password */}
-          <div style={{ textAlign: 'right', marginBottom: '16px' }}>
-            <Link to="/forgot-password" style={{ color: '#6B9E78', fontSize: '0.875rem', textDecoration: 'none', fontWeight: 500 }}>
-              Forgot Password?
-            </Link>
-          </div>
-
-          {/* Sign In Button */}
+          {/* Sign Up Button */}
           <button type="submit" disabled={loading} style={{
             width: '100%',
             height: '46px',
@@ -184,14 +231,14 @@ export default function Login() {
           onMouseOver={(e) => !loading && (e.currentTarget.style.backgroundColor = '#b58b57')}
           onMouseOut={(e) => !loading && (e.currentTarget.style.backgroundColor = '#C99C63')}
           >
-            {loading ? 'Logging in...' : 'Sign In'}
+            {loading ? 'Creating Account...' : 'Sign Up'}
           </button>
         </form>
 
-        <p style={{ textAlign: 'center', color: '#8b949e', fontSize: '0.875rem', margin: '24px 0 0 0' }}>
-          Don't have an account?{' '}
-          <Link to="/customer-signup" style={{ color: '#6B9E78', textDecoration: 'none', fontWeight: 500 }}>
-            Sign Up
+        <p style={{ textAlign: 'center', color: '#8b949e', fontSize: '0.875rem', margin: '16px 0 0 0' }}>
+          Already have an account?{' '}
+          <Link to="/login" style={{ color: '#6B9E78', textDecoration: 'none', fontWeight: 500 }}>
+            Log in
           </Link>
         </p>
       </div>

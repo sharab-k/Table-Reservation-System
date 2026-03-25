@@ -1,21 +1,34 @@
+import { useState, useEffect } from 'react'
 import { Plus, Edit } from 'lucide-react'
+import { api } from '../../../services/api'
 import StatusBadge from '../../../components/StatusBadge'
 
 interface TablesManagementTabProps {
   theme: 'dark' | 'light'
 }
 
-const tables = [
-  { id: 1, name: '#1', area: 'Window', capacity: 2, type: 'Window', shape: 'Rectangle', status: 'seated' as const },
-  { id: 2, name: '#2', area: 'Main Dining', capacity: 2, type: 'Main Dining', shape: 'Round', status: 'confirmed' as const },
-  { id: 3, name: '#3', area: 'Outdoor', capacity: 4, type: 'Outdoor', shape: 'Rectangle', status: 'available' as const },
-  { id: 4, name: '#4', area: 'Window', capacity: 4, type: 'Window', shape: 'Rectangle', status: 'confirmed' as const },
-  { id: 5, name: '#5', area: 'Main Dining', capacity: 2, type: 'Main Dining', shape: 'Round', status: 'available' as const },
-  { id: 6, name: '#6', area: 'Outdoor', capacity: 6, type: 'Outdoor', shape: 'Rectangle', status: 'seated' as const },
-]
-
 export default function TablesManagementTab({ theme }: TablesManagementTabProps) {
   const isDark = theme === 'dark'
+  const [tablesList, setTablesList] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    const fetchTables = async () => {
+      try {
+        setLoading(true)
+        const orgId = 'default-org-id'
+        const { data } = await api.get(`/organizations/${orgId}/tables`)
+        if (data.data) {
+          setTablesList(data.data)
+        }
+      } catch (err) {
+        console.error('Failed to fetch tables:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchTables()
+  }, [])
 
   return (
     <div>
@@ -58,7 +71,10 @@ export default function TablesManagementTab({ theme }: TablesManagementTabProps)
             </tr>
           </thead>
           <tbody>
-            {tables.map((table) => (
+            {loading && (
+              <tr><td colSpan={7} style={{ textAlign: 'center', padding: '16px', color: isDark ? '#8b949e' : '#6b7280' }}>Loading tables...</td></tr>
+            )}
+            {!loading && tablesList.map((table) => (
               <tr
                 key={table.id}
                 style={{
@@ -70,22 +86,22 @@ export default function TablesManagementTab({ theme }: TablesManagementTabProps)
                 onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               >
                 <td style={{ padding: '16px', fontWeight: 600, color: isDark ? '#ffffff' : '#1f2937' }}>
-                  {table.name}
+                  {table.name || `#${table.table_number}`}
                 </td>
                 <td style={{ padding: '16px', color: isDark ? '#8b949e' : '#6b7280' }}>
-                  {table.area}
+                  {table.floor_area?.name || table.area || 'Main Dining'}
                 </td>
                 <td style={{ padding: '16px', color: isDark ? '#8b949e' : '#6b7280' }}>
                   {table.capacity}
                 </td>
                 <td style={{ padding: '16px', color: isDark ? '#8b949e' : '#6b7280' }}>
-                  {table.type}
+                  {table.table_type || 'Standard'}
                 </td>
                 <td style={{ padding: '16px', color: isDark ? '#8b949e' : '#6b7280' }}>
-                  {table.shape}
+                  {table.shape || 'Rectangle'}
                 </td>
                 <td style={{ padding: '16px' }}>
-                  <StatusBadge status={table.status} />
+                  <StatusBadge status={table.status || 'available'} />
                 </td>
                 <td style={{ padding: '16px', textAlign: 'right' }}>
                   <button style={{
@@ -100,6 +116,9 @@ export default function TablesManagementTab({ theme }: TablesManagementTabProps)
                 </td>
               </tr>
             ))}
+            {!loading && tablesList.length === 0 && (
+              <tr><td colSpan={7} style={{ textAlign: 'center', padding: '16px', color: isDark ? '#8b949e' : '#6b7280' }}>No tables found. Add one or upload a floor plan.</td></tr>
+            )}
           </tbody>
         </table>
       </div>

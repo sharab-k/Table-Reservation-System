@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { Eye, EyeOff } from 'lucide-react'
 
 export default function StaffLogin() {
@@ -132,9 +132,9 @@ export default function StaffLogin() {
 
           {/* Forgot Password */}
           <div style={{ textAlign: 'right', marginBottom: '24px' }}>
-            <a href="#" style={{ fontSize: '0.8125rem', color: '#4A9E6B', textDecoration: 'none', fontWeight: 500 }}>
+            <Link to="/staff-forgot-password" style={{ fontSize: '0.875rem', color: '#4A9E6B', textDecoration: 'none', fontWeight: 500 }}>
               Forgot Password?
-            </a>
+            </Link>
           </div>
 
           {/* Sign In Button */}
@@ -157,13 +157,6 @@ export default function StaffLogin() {
             Sign In
           </button>
         </form>
-      </div>
-
-      {/* Bottom Left Copyright (Matching previous pages) */}
-      <div className="res-auth-copy" style={{ position: 'absolute', bottom: '24px', left: '40px' }}>
-        <p style={{ color: '#9ca3af', fontSize: '0.875rem', margin: 0 }}>
-          Copyright @lemonvolt 2025 | Privacy Policy
-        </p>
       </div>
     </div>
   )

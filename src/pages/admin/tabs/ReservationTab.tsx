@@ -1,23 +1,35 @@
-import { Download } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Download, RefreshCw } from 'lucide-react'
+import { api } from '../../../services/api'
 import StatusBadge from '../../../components/StatusBadge'
 
 interface ReservationTabProps {
   theme: 'dark' | 'light'
 }
 
-const reservations = [
-  { id: 1, guest: 'Amy Dogan', table: 'Table 3', time: '17:00', party: 4, status: 'confirmed' as const },
-  { id: 2, guest: 'Jon Lane', table: 'Table 7', time: '17:30', party: 4, status: 'seated' as const },
-  { id: 3, guest: 'Mike Porter', table: 'Table 1', time: '18:00', party: 6, status: 'arrived' as const },
-  { id: 4, guest: 'Susan Reach', table: 'Table 3', time: '18:30', party: 4, status: 'confirmed' as const },
-  { id: 5, guest: 'Beth Rose', table: 'Table 1', time: '19:00', party: 6, status: 'confirmed' as const },
-  { id: 6, guest: 'Maggie Slate', table: 'Table 7', time: '19:30', party: 4, status: 'confirmed' as const },
-  { id: 7, guest: 'Tonny Timber', table: 'Table 9', time: '20:00', party: 8, status: 'confirmed' as const },
-  { id: 8, guest: 'Uston &Co', table: 'Table 1', time: '17:00', party: 8, status: 'seated' as const },
-]
-
 export default function ReservationTab({ theme }: ReservationTabProps) {
   const isDark = theme === 'dark'
+  const [resList, setResList] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
+
+  const fetchReservations = async () => {
+    try {
+      setLoading(true)
+      const orgId = 'default-org-id'
+      const { data } = await api.get(`/reservations?orgId=${orgId}`)
+      if (data.data) {
+        setResList(data.data)
+      }
+    } catch (err) {
+      console.error('Failed to fetch reservations:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchReservations()
+  }, [])
 
   return (
     <div>
@@ -60,7 +72,10 @@ export default function ReservationTab({ theme }: ReservationTabProps) {
             </tr>
           </thead>
           <tbody>
-            {reservations.map((res) => (
+            {loading && (
+              <tr><td colSpan={5} style={{ textAlign: 'center', padding: '16px', color: isDark ? '#8b949e' : '#6b7280' }}>Loading reservations...</td></tr>
+            )}
+            {!loading && resList.map((res) => (
               <tr
                 key={res.id}
                 style={{
@@ -72,22 +87,25 @@ export default function ReservationTab({ theme }: ReservationTabProps) {
                 onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               >
                 <td style={{ padding: '16px', fontWeight: 600, color: isDark ? '#ffffff' : '#1f2937' }}>
-                  {res.guest}
+                  {res.customer?.firstName} {res.customer?.lastName}
                 </td>
                 <td style={{ padding: '16px', color: isDark ? '#8b949e' : '#6b7280' }}>
-                  {res.table}
+                  {res.table?.name || 'Unassigned'}
                 </td>
                 <td style={{ padding: '16px', color: isDark ? '#8b949e' : '#6b7280' }}>
-                  {res.time}
+                  {new Date(res.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </td>
                 <td style={{ padding: '16px', color: isDark ? '#8b949e' : '#6b7280' }}>
-                  {res.party}
+                  {res.partySize}
                 </td>
                 <td style={{ padding: '16px' }}>
-                  <StatusBadge status={res.status} />
+                  <StatusBadge status={res.status || 'pending'} />
                 </td>
               </tr>
             ))}
+            {!loading && resList.length === 0 && (
+              <tr><td colSpan={5} style={{ textAlign: 'center', padding: '16px', color: isDark ? '#8b949e' : '#6b7280' }}>No reservations found.</td></tr>
+            )}
           </tbody>
         </table>
       </div>

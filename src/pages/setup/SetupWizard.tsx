@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import Navbar from '../../components/Navbar'
 import ProgressBar from '../../components/ProgressBar'
-import { X, Upload, Download, Eye, EyeOff, ChefHat } from 'lucide-react'
+import { X, Upload, Download, Eye, EyeOff, ChefHat, MapPin, Clock } from 'lucide-react'
+import { api } from '../../services/api'
 
 const TOTAL_STEPS = 4
 
@@ -24,19 +25,50 @@ export default function SetupWizard() {
   })
 
   // Step 4: Team
-  const [teamEmail, setTeamEmail] = useState('john@example.com')
+  const [teamEmail, setTeamEmail] = useState('')
   const [teamRole, setTeamRole] = useState('Manager')
-  const [invitedMembers, setInvitedMembers] = useState([
-    { email: 'john@example.com', role: 'Manager' },
-  ])
+  const [invitedMembers, setInvitedMembers] = useState<any[]>([])
 
   const percentage = Math.round((currentStep / TOTAL_STEPS) * 100)
 
-  const nextStep = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const nextStep = async () => {
     if (currentStep < TOTAL_STEPS) {
       setCurrentStep(currentStep + 1)
     } else {
-      navigate('/admin')
+      try {
+        setIsSubmitting(true)
+        const orgId = 'default-org-id'
+        
+        await api.put(`/organizations/${orgId}`, {
+          address: details.address,
+          openingTime: details.openingTime,
+          closingTime: details.closingTime,
+          allowMergeableTables: rules.mergeable,
+          allowWalkIns: rules.walkIns,
+        })
+
+        if (invitedMembers.length > 0) {
+          for (const member of invitedMembers) {
+            try {
+              await api.post(`/organizations/${orgId}/staff/invite`, {
+                email: member.email,
+                role: member.role.toLowerCase()
+              })
+            } catch (err) {
+              console.error(`Failed to invite ${member.email}:`, err)
+            }
+          }
+        }
+        
+        navigate('/admin')
+      } catch (err) {
+        console.error('Failed to complete setup:', err)
+        alert('Failed to save settings.')
+      } finally {
+        setIsSubmitting(false)
+      }
     }
   }
 
@@ -66,59 +98,68 @@ export default function SetupWizard() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '1rem', fontWeight: 600, color: '#111827', marginBottom: '12px' }}>Address</label>
-                <input
-                  type="text"
-                  value={details.address}
-                  onChange={(e) => setDetails({ ...details, address: e.target.value })}
-                  placeholder="123 Main Street, London"
-                  style={{
-                    width: '100%',
-                    backgroundColor: '#ffffff',
-                    border: '1px solid #d1d5db',
-                    borderRadius: '10px',
-                    padding: '16px 20px',
-                    color: '#111827',
-                    fontSize: '1rem',
-                    outline: 'none',
-                  }}
-                />
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '1rem', fontWeight: 600, color: '#111827', marginBottom: '12px' }}>Opening Time</label>
+                <div style={{ position: 'relative' }}>
+                  <MapPin size={20} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
                   <input
                     type="text"
-                    value={details.openingTime}
-                    onChange={(e) => setDetails({ ...details, openingTime: e.target.value })}
+                    value={details.address}
+                    onChange={(e) => setDetails({ ...details, address: e.target.value })}
+                    placeholder="123 Main Street, London"
                     style={{
                       width: '100%',
                       backgroundColor: '#ffffff',
                       border: '1px solid #d1d5db',
                       borderRadius: '10px',
-                      padding: '16px 20px',
+                      padding: '16px 20px 16px 52px',
                       color: '#111827',
-                      fontSize: '1.125rem',
+                      fontSize: '1rem',
                       outline: 'none',
                     }}
                   />
                 </div>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '1rem', fontWeight: 600, color: '#111827', marginBottom: '12px' }}>Opening Time</label>
+                  <div style={{ position: 'relative' }}>
+                    <Clock size={20} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
+                    <input
+                      type="time"
+                      value={details.openingTime}
+                      onChange={(e) => setDetails({ ...details, openingTime: e.target.value })}
+                      style={{
+                        width: '100%',
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '10px',
+                        padding: '16px 20px 16px 52px',
+                        color: '#111827',
+                        fontSize: '1.125rem',
+                        outline: 'none',
+                      }}
+                    />
+                  </div>
+                </div>
                 <div>
                   <label style={{ display: 'block', fontSize: '1rem', fontWeight: 600, color: '#111827', marginBottom: '12px' }}>Closing Time</label>
-                  <input
-                    type="text"
-                    value={details.closingTime}
-                    onChange={(e) => setDetails({ ...details, closingTime: e.target.value })}
-                    style={{
-                      width: '100%',
-                      backgroundColor: '#ffffff',
-                      border: '1px solid #d1d5db',
-                      borderRadius: '10px',
-                      padding: '16px 20px',
-                      color: '#111827',
-                      fontSize: '1.125rem',
-                      outline: 'none',
-                    }}
-                  />
+                  <div style={{ position: 'relative' }}>
+                    <Clock size={20} style={{ position: 'absolute', left: '16px', top: '50%', transform: 'translateY(-50%)', color: '#9ca3af' }} />
+                    <input
+                      type="time"
+                      value={details.closingTime}
+                      onChange={(e) => setDetails({ ...details, closingTime: e.target.value })}
+                      style={{
+                        width: '100%',
+                        backgroundColor: '#ffffff',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '10px',
+                        padding: '16px 20px 16px 52px',
+                        color: '#111827',
+                        fontSize: '1.125rem',
+                        outline: 'none',
+                      }}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -251,7 +292,7 @@ export default function SetupWizard() {
                   type="email"
                   value={teamEmail}
                   onChange={(e) => setTeamEmail(e.target.value)}
-                  placeholder="john@example.com"
+                  placeholder="email@example.com"
                   style={{
                     width: '100%',
                     backgroundColor: '#ffffff',
@@ -469,7 +510,7 @@ export default function SetupWizard() {
                 cursor: 'pointer'
               }}
             >
-              {currentStep === TOTAL_STEPS ? 'Complete Setup' : 'Continue'}
+              {isSubmitting ? 'Saving...' : (currentStep === TOTAL_STEPS ? 'Complete Setup' : 'Continue')}
             </button>
           </div>
         </div>

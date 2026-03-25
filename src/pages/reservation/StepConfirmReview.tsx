@@ -172,7 +172,11 @@ export default function StepConfirmReview({ data, onEdit }: StepConfirmReviewPro
             <div>
               <h3 style={{ fontWeight: 600, color: '#111827', fontSize: '0.875rem', margin: 0, fontFamily: 'var(--font-sans)' }}>Date & Time</h3>
               <p style={{ color: '#6b7280', fontSize: '0.875rem', margin: '4px 0 0 0', display: 'flex', alignItems: 'center', gap: '8px', fontFamily: 'var(--font-sans)' }}>
-                Thu, Mar 5, 2026
+                {data.date ? new Date(
+                  data.date.includes('/') 
+                    ? `${data.date.split('/')[2]}-${data.date.split('/')[1]}-${data.date.split('/')[0]}T12:00:00`
+                    : `${data.date}T12:00:00`
+                ).toLocaleDateString('en-GB', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' }) : 'Select Date'}
                 <Clock size={12} />
                 {data.time || '17:30'}
               </p>

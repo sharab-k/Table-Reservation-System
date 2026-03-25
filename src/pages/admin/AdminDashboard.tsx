@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Calendar, Users as UsersIcon, LayoutGrid, UserCheck } from 'lucide-react'
+import { api } from '../../services/api'
 import Navbar from '../../components/Navbar'
 import StatsCard from '../../components/StatsCard'
 import ReservationTab from './tabs/ReservationTab'
@@ -17,7 +18,33 @@ const tabs = [
 export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState('reservation')
   const [theme, setTheme] = useState<'dark' | 'light'>('dark')
+  const [stats, setStats] = useState({
+    todayBookings: 0,
+    seatedNow: 0,
+    totalTables: 0,
+    totalStaff: 0
+  })
   const isDark = theme === 'dark'
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const orgId = 'default-org-id'
+        const { data } = await api.get(`/organizations/${orgId}/stats`)
+        if (data.stats) {
+          setStats({
+            todayBookings: data.stats.todayBookings || 0,
+            seatedNow: data.stats.seatedNow || 0,
+            totalTables: data.stats.totalTables || 0,
+            totalStaff: data.stats.totalStaff || 0
+          })
+        }
+      } catch (error) {
+        console.error('Failed to load stats:', error)
+      }
+    }
+    fetchStats()
+  }, [])
 
   const toggleTheme = () => {
     setTheme(prev => prev === 'dark' ? 'light' : 'dark')
@@ -42,25 +69,25 @@ export default function AdminDashboard() {
         }}>
           <StatsCard
             label="Today's Bookings"
-            value={3}
+            value={stats.todayBookings}
             icon={<Calendar size={18} />}
             variant={theme}
           />
           <StatsCard
             label="Seated Now"
-            value={3}
+            value={stats.seatedNow}
             icon={<UsersIcon size={18} />}
             variant={theme}
           />
           <StatsCard
             label="Tables"
-            value={16}
+            value={stats.totalTables}
             icon={<LayoutGrid size={18} />}
             variant={theme}
           />
           <StatsCard
             label="Total Staff"
-            value={5}
+            value={stats.totalStaff}
             icon={<UserCheck size={18} />}
             variant={theme}
           />

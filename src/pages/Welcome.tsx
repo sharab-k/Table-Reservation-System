@@ -1,71 +1,38 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Calendar, Table, Settings, LogOut, CheckCircle2, Users, MapPin, Clock } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
+import { api } from '../services/api'
 
 export default function Welcome() {
   const navigate = useNavigate()
-
-  const reservations = [
-    {
-      id: 1,
-      table: 'Table 7',
-      capacity: '2 Seats',
-      location: 'By the window',
-      date: '2026-02-20',
-      time: '19:00',
-      status: 'Confirmed'
-    },
-    {
-      id: 2,
-      table: 'Table 8',
-      capacity: '2 Seats',
-      location: 'By the window',
-      date: '2026-02-20',
-      time: '19:00',
-      status: 'Confirmed'
-    }
-  ]
-
-  const visitHistory = [
-    {
-      id: 1,
-      table: 'Table 7',
-      capacity: '2 seats',
-      location: 'By the window',
-      date: '2026-02-20',
-      time: '19:00',
-      status: 'Completed'
-    },
-    {
-      id: 2,
-      table: 'Table 8',
-      capacity: '2 seats',
-      location: 'By the window',
-      date: '2026-02-20',
-      time: '19:00',
-      status: 'Completed'
-    },
-    {
-      id: 3,
-      table: 'Table 9',
-      capacity: '2 seats',
-      location: 'By the window',
-      date: '2026-02-20',
-      time: '19:00',
-      status: 'Completed'
-    },
-    {
-      id: 4,
-      table: 'Table 10',
-      capacity: '2 seats',
-      location: 'By the window',
-      date: '2026-02-20',
-      time: '19:00',
-      status: 'Completed'
-    }
-  ]
-
+  const { user } = useAuth()
   const [activeTab, setActiveTab] = useState<'upcoming' | 'history'>('upcoming')
+  const [upcomingList, setUpcomingList] = useState<any[]>([])
+  const [historyList, setHistoryList] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    const fetchReservations = async () => {
+      if (!user?.id) return
+      try {
+        setLoading(true)
+        const { data } = await api.get(`/reservations?customerId=${user.id}`)
+        if (data.data) {
+          const now = new Date()
+          const upcoming = data.data.filter((r: any) => new Date(r.startTime) >= now && r.status !== 'cancelled')
+          const history = data.data.filter((r: any) => new Date(r.startTime) < now || r.status === 'completed' || r.status === 'cancelled')
+          setUpcomingList(upcoming)
+          setHistoryList(history)
+        }
+      } catch (err) {
+        console.error('Failed to load reservations:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchReservations()
+  }, [user?.id])
 
   return (
     <div className="res-welcome-container" style={{
@@ -104,7 +71,7 @@ export default function Welcome() {
         }}>
           <div>
             <div style={{ fontSize: '0.875rem', color: '#8b949e', marginBottom: '8px' }}>Upcoming</div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>2</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{upcomingList.length}</div>
           </div>
           <div style={{ 
             width: '48px', 
@@ -131,7 +98,7 @@ export default function Welcome() {
         }}>
           <div>
             <div style={{ fontSize: '0.875rem', color: '#8b949e', marginBottom: '8px' }}>Past Visits</div>
-            <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>4</div>
+            <div style={{ fontSize: '1.5rem', fontWeight: 700 }}>{historyList.length}</div>
           </div>
           <div style={{ 
             width: '48px', 
@@ -209,7 +176,8 @@ export default function Welcome() {
 
       {/* Reservation Cards */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-        {activeTab === 'upcoming' && reservations.map(res => (
+        {loading && <p style={{ color: '#8b949e' }}>Loading reservations...</p>}
+        {!loading && activeTab === 'upcoming' && upcomingList.map(res => (
           <div key={res.id} className="res-welcome-res-card" style={{
             backgroundColor: '#101A1C',
             borderRadius: '12px',
@@ -225,7 +193,7 @@ export default function Welcome() {
               </div>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                  <h4 style={{ fontSize: '1rem', fontWeight: 600, margin: 0 }}>{res.table}</h4>
+                  <h4 style={{ fontSize: '1rem', fontWeight: 600, margin: 0 }}>{res.table?.name || 'Table Pending'}</h4>
                   <div style={{ 
                     display: 'flex', 
                     alignItems: 'center', 
@@ -234,17 +202,18 @@ export default function Welcome() {
                     color: '#4a9e6b', 
                     backgroundColor: 'rgba(74, 158, 107, 0.1)', 
                     padding: '2px 8px', 
-                    borderRadius: '12px' 
+                    borderRadius: '12px',
+                    textTransform: 'capitalize'
                   }}>
                     <CheckCircle2 size={12} />
-                    {res.status}
+                    {res.status || 'pending'}
                   </div>
                 </div>
                 <div className="res-welcome-res-meta" style={{ fontSize: '0.875rem', color: '#8b949e', display: 'flex', gap: '16px' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Users size={14} /> Capacity: {res.capacity}</span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><MapPin size={14} /> {res.location}</span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Calendar size={14} /> {res.date}</span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Clock size={14} /> {res.time}</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Users size={14} /> Capacity: {res.partySize} seats</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><MapPin size={14} /> {res.table?.table_type || 'Main Dining'}</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Calendar size={14} /> {new Date(res.startTime).toLocaleDateString()}</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Clock size={14} /> {new Date(res.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
               </div>
             </div>
@@ -261,8 +230,13 @@ export default function Welcome() {
             </button>
           </div>
         ))}
+        {!loading && activeTab === 'upcoming' && upcomingList.length === 0 && (
+          <p style={{ color: '#8b949e', padding: '16px', backgroundColor: '#101A1C', borderRadius: '12px', border: '1px solid #30363d' }}>
+            No upcoming reservations.
+          </p>
+        )}
 
-        {activeTab === 'history' && visitHistory.map(res => (
+        {!loading && activeTab === 'history' && historyList.map(res => (
           <div key={res.id} className="res-welcome-res-card" style={{
             backgroundColor: '#101A1C',
             borderRadius: '12px',
@@ -286,7 +260,7 @@ export default function Welcome() {
               </div>
               <div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '8px' }}>
-                  <h4 style={{ fontSize: '1rem', fontWeight: 600, margin: 0 }}>{res.table}</h4>
+                  <h4 style={{ fontSize: '1rem', fontWeight: 600, margin: 0 }}>{res.table?.name || 'Table Pending'}</h4>
                   <div style={{ 
                     display: 'flex', 
                     alignItems: 'center', 
@@ -295,22 +269,27 @@ export default function Welcome() {
                     color: '#4a9e6b', 
                     backgroundColor: 'rgba(74, 158, 107, 0.1)', 
                     padding: '2px 8px', 
-                    borderRadius: '12px' 
+                    borderRadius: '12px',
+                    textTransform: 'capitalize'
                   }}>
                     {res.status}
                   </div>
                 </div>
                 <div className="res-welcome-res-meta" style={{ fontSize: '0.875rem', color: '#8b949e', display: 'flex', gap: '16px' }}>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Users size={14} /> Capacity: {res.capacity}</span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><MapPin size={14} /> {res.location}</span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Calendar size={14} /> {res.date}</span>
-                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Clock size={14} /> {res.time}</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Users size={14} /> Capacity: {res.partySize} seats</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><MapPin size={14} /> {res.table?.table_type || 'Main Dining'}</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Calendar size={14} /> {new Date(res.startTime).toLocaleDateString()}</span>
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}><Clock size={14} /> {new Date(res.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
                 </div>
               </div>
             </div>
-            {/* No cancel button for history */}
           </div>
         ))}
+        {!loading && activeTab === 'history' && historyList.length === 0 && (
+          <p style={{ color: '#8b949e', padding: '16px', backgroundColor: '#101A1C', borderRadius: '12px', border: '1px solid #30363d' }}>
+            No past visits found.
+          </p>
+        )}
       </div>
     </div>
   )

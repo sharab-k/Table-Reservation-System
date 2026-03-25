@@ -65,13 +65,27 @@ export default function UserStepDateTime({ data, updateData }: UserStepDateTimeP
           Date
         </label>
         <div style={{ position: 'relative' }}>
+          {/* We capture the date directly from a true type="date" native picker */}
           <input
-            type="text"
-            value={data.date}
-            onChange={(e) => updateData({ date: e.target.value })}
+            type="date"
+            value={(() => {
+              // Convert DD/MM/YYYY fallback into YYYY-MM-DD for native input
+              if (data.date.includes('/')) {
+                const [d, m, y] = data.date.split('/')
+                return `${y}-${m.padStart(2, '0')}-${d.padStart(2, '0')}`
+              }
+              return data.date
+            })()}
+            onChange={(e) => {
+              const val = e.target.value
+              if (val) {
+                // Keep the state in standard YYYY-MM-DD so that input[type="date"] functions natively.
+                // The submit flow will handle YYYY-MM-DD properly. 
+                updateData({ date: val })
+              }
+            }}
             style={{ 
               padding: '12px 16px', 
-              paddingRight: '40px', 
               width: '100%', 
               boxSizing: 'border-box',
               backgroundColor: 'transparent',
@@ -80,17 +94,17 @@ export default function UserStepDateTime({ data, updateData }: UserStepDateTimeP
               color: '#ffffff',
               fontSize: '1rem',
               fontFamily: 'Inter, system-ui, sans-serif',
-              outline: 'none'
+              outline: 'none',
+              cursor: 'pointer' // Helps on desktop to trigger native picker
             }}
           />
-          <Calendar size={18} style={{ position: 'absolute', right: '16px', top: '50%', transform: 'translateY(-50%)', color: '#8b949e' }} />
         </div>
       </div>
 
       {/* Time Slots */}
       <div style={{ marginBottom: '32px' }}>
         <h3 style={{ fontSize: '1rem', fontWeight: 600, color: '#ffffff', marginBottom: '12px' }}>
-          Preferred Time
+          Preferred Time (European 24h)
         </h3>
         <div className="res-time-grid" style={{
           display: 'grid',
@@ -145,10 +159,10 @@ export default function UserStepDateTime({ data, updateData }: UserStepDateTimeP
                     gap: '6px'
                   }}
                 >
-                  {isConflict && <AlertCircle size={12} />}
                   {isConflict && <Clock size={12} />}
                   {!isConflict && isSelected && <Clock size={12} />}
                   {slot}
+                  {isConflict && <AlertCircle size={12} />}
                 </button>
                 {hoveredDisabled === slot && isConflict && (
                   <div style={{

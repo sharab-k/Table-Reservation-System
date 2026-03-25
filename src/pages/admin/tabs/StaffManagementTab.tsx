@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Search, MoreVertical, Plus, X } from 'lucide-react'
+import { Search, MoreVertical, Plus, X, Trash2 } from 'lucide-react'
 import { api } from '../../../services/api'
 import StatusBadge from '../../../components/StatusBadge'
 
@@ -27,6 +27,10 @@ export default function StaffManagementTab({ theme }: StaffManagementTabProps) {
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole, setInviteRole] = useState('host')
   const [inviteLoading, setInviteLoading] = useState(false)
+  
+  // Delete Confirmation State
+  const [confirmDeleteMember, setConfirmDeleteMember] = useState<any>(null)
+  const [deleteLoading, setDeleteLoading] = useState(false)
 
   const fetchStaff = async () => {
     try {
@@ -68,6 +72,22 @@ export default function StaffManagementTab({ theme }: StaffManagementTabProps) {
       alert('Failed to invite staff.')
     } finally {
       setInviteLoading(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!confirmDeleteMember) return
+    try {
+      setDeleteLoading(true)
+      const orgId = 'default-org-id' // Ideally from auth context
+      await api.delete(`/organizations/${orgId}/staff/${confirmDeleteMember.id}`)
+      setStaffList(staffList.filter(s => s.id !== confirmDeleteMember.id))
+      setConfirmDeleteMember(null)
+    } catch (err) {
+      console.error('Failed to remove staff:', err)
+      alert('Failed to remove staff member. Ensure you have the right permissions.')
+    } finally {
+      setDeleteLoading(false)
     }
   }
 
@@ -178,14 +198,26 @@ export default function StaffManagementTab({ theme }: StaffManagementTabProps) {
                     <StatusBadge status={member.role || member.status || 'viewer'} />
                   </td>
                   <td style={{ padding: '16px 24px', textAlign: 'right' }}>
-                    <button style={{
-                      background: 'none',
-                      border: 'none',
-                      color: isDark ? '#8b949e' : '#6b7280',
-                      cursor: 'pointer',
-                      padding: '4px'
-                    }}>
-                      <MoreVertical size={16} />
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        setConfirmDeleteMember(member)
+                      }}
+                      style={{
+                        background: 'none',
+                        border: 'none',
+                        color: '#ef4444',
+                        cursor: 'pointer',
+                        padding: '8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        fontSize: '0.875rem',
+                        fontWeight: 500,
+                        marginLeft: 'auto'
+                      }}
+                    >
+                      <Trash2 size={16} /> <span>Remove</span>
                     </button>
                   </td>
                 </tr>
@@ -287,6 +319,66 @@ export default function StaffManagementTab({ theme }: StaffManagementTabProps) {
             >
               {inviteLoading ? 'Sending...' : 'Send Invitation'}
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {confirmDeleteMember && (
+        <div style={{
+          position: 'fixed',
+          inset: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 60
+        }}>
+          <div style={{
+            backgroundColor: isDark ? '#101A1C' : '#ffffff',
+            border: `1px solid ${isDark ? '#30363d' : '#e5e7eb'}`,
+            borderRadius: '12px',
+            padding: '32px',
+            width: '100%',
+            maxWidth: '400px',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
+          }}>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '1.25rem', fontWeight: 600, color: isDark ? '#ffffff' : '#111827' }}>Remove Staff Member</h3>
+            <p style={{ margin: '0 0 24px 0', fontSize: '0.875rem', color: isDark ? '#d1d5db' : '#4b5563', lineHeight: 1.5 }}>
+              Are you sure you want to remove <strong>{confirmDeleteMember.name || confirmDeleteMember.email || 'this member'}</strong>? They will lose access to the restaurant's dashboard immediately.
+            </p>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button 
+                onClick={() => setConfirmDeleteMember(null)}
+                disabled={deleteLoading}
+                style={{
+                  flex: 1,
+                  padding: '10px',
+                  backgroundColor: 'transparent',
+                  border: `1px solid ${isDark ? '#30363d' : '#d1d5db'}`,
+                  color: isDark ? '#e6edf3' : '#374151',
+                  borderRadius: '8px',
+                  fontWeight: 600,
+                  cursor: deleteLoading ? 'not-allowed' : 'pointer'
+                }}
+              >Cancel</button>
+              <button 
+                onClick={handleDelete}
+                disabled={deleteLoading}
+                style={{
+                  flex: 1,
+                  padding: '10px',
+                  backgroundColor: '#ef4444',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontWeight: 600,
+                  cursor: deleteLoading ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {deleteLoading ? 'Removing...' : 'Remove'}
+              </button>
+            </div>
           </div>
         </div>
       )}

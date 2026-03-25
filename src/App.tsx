@@ -17,6 +17,9 @@ import UserReservationWizard from './pages/user-reservation/UserReservationWizar
 import UserBookingConfirmed from './pages/user-reservation/UserBookingConfirmed'
 import BookATableWizard from './pages/public-reservation/BookATableWizard'
 import PublicBookingConfirmed from './pages/public-reservation/PublicBookingConfirmed'
+import CustomerSignUp from './pages/CustomerSignUp'
+import ForgotPassword from './pages/ForgotPassword'
+import StaffForgotPassword from './pages/StaffForgotPassword'
 
 function App() {
   return (
@@ -24,6 +27,9 @@ function App() {
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<SignUp />} />
+      <Route path="/customer-signup" element={<CustomerSignUp />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/staff-forgot-password" element={<StaffForgotPassword />} />
       <Route path="/reserve" element={<ReservationWizard />} />
       <Route path="/booking-confirmed" element={<BookingConfirmed />} />
       <Route path="/dashboard" element={<CustomerDashboard />} />

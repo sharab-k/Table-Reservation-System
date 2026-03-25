@@ -77,7 +77,7 @@ export default function UserStepContactInfo({ data, updateData }: UserStepContac
             type="tel"
             value={data.phone}
             onChange={(e) => updateData({ phone: e.target.value })}
-            placeholder="+1 (555) 000-000"
+            placeholder="+44 7700 900000"
             style={inputStyle}
           />
         </div>

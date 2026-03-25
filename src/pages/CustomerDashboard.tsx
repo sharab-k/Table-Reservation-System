@@ -1,43 +1,38 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Calendar, Clock, Users, MapPin, X } from 'lucide-react'
-
-const upcomingReservations = [
-  {
-    id: 1,
-    date: 'Thursday, March 5, 2026',
-    time: '17:30',
-    guests: 2,
-    table: 'Table 6',
-    area: 'Center area',
-    status: 'Confirmed',
-  },
-]
-
-const visitHistory = [
-  {
-    id: 1,
-    date: 'February 14, 2026',
-    time: '19:00',
-    guests: 2,
-    table: 'Table 3',
-    area: 'Private corner',
-    status: 'Completed',
-  },
-  {
-    id: 2,
-    date: 'January 28, 2026',
-    time: '18:30',
-    guests: 4,
-    table: 'Table 7',
-    area: 'Main Dining',
-    status: 'Completed',
-  },
-]
+import { useAuth } from '../context/AuthContext'
+import { api } from '../services/api'
 
 export default function CustomerDashboard() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [activeTab, setActiveTab] = useState<'upcoming' | 'history'>('upcoming')
+  const [upcomingList, setUpcomingList] = useState<any[]>([])
+  const [historyList, setHistoryList] = useState<any[]>([])
+  const [loading, setLoading] = useState(false)
+
+  useEffect(() => {
+    const fetchCustomerReservations = async () => {
+      if (!user?.id) return
+      try {
+        setLoading(true)
+        const { data } = await api.get(`/reservations?customerId=${user.id}`)
+        if (data.data) {
+          const now = new Date()
+          const upcoming = data.data.filter((r: any) => new Date(r.startTime) >= now && r.status !== 'cancelled')
+          const history = data.data.filter((r: any) => new Date(r.startTime) < now || r.status === 'completed' || r.status === 'cancelled')
+          setUpcomingList(upcoming)
+          setHistoryList(history)
+        }
+      } catch (err) {
+        console.error('Failed to load customer reservations:', err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchCustomerReservations()
+  }, [user?.id])
 
   return (
     <div className="min-h-screen bg-dark-bg">
@@ -51,11 +46,11 @@ export default function CustomerDashboard() {
           <div className="grid grid-cols-2 gap-4 mt-6 max-w-md res-cust-stats-grid">
             <div className="bg-dark-bg-secondary border border-dark-border rounded-xl p-4">
               <p className="text-dark-text-secondary text-xs">Upcoming</p>
-              <p className="text-2xl font-bold text-white mt-1">1</p>
+              <p className="text-2xl font-bold text-white mt-1">{upcomingList.length}</p>
             </div>
             <div className="bg-dark-bg-secondary border border-dark-border rounded-xl p-4">
               <p className="text-dark-text-secondary text-xs">Past Visits</p>
-              <p className="text-2xl font-bold text-white mt-1">12</p>
+              <p className="text-2xl font-bold text-white mt-1">{historyList.length}</p>
             </div>
           </div>
         </div>
@@ -102,7 +97,8 @@ export default function CustomerDashboard() {
 
         {/* Reservation Cards */}
         <div className="space-y-4 animate-fade-in">
-          {(activeTab === 'upcoming' ? upcomingReservations : visitHistory).map((res) => (
+          {loading && <p className="text-dark-text-secondary">Loading reservations...</p>}
+          {!loading && (activeTab === 'upcoming' ? upcomingList : historyList).map((res) => (
             <div
               key={res.id}
               className="bg-dark-card border border-dark-border rounded-xl p-6"
@@ -111,28 +107,28 @@ export default function CustomerDashboard() {
                 <div className="space-y-3">
                   <div className="flex items-center gap-2 text-sm text-white">
                     <Calendar size={14} className="text-gold" />
-                    {res.date}
+                    {new Date(res.startTime).toLocaleDateString(undefined, { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
                   </div>
                   <div className="flex items-center gap-4 text-sm text-dark-text-secondary res-cust-res-meta">
                     <span className="flex items-center gap-1.5">
                       <Clock size={13} />
-                      {res.time}
+                      {new Date(res.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </span>
                     <span className="flex items-center gap-1.5">
                       <Users size={13} />
-                      {res.guests} Guests
+                      {res.partySize} Guests
                     </span>
                     <span className="flex items-center gap-1.5">
                       <MapPin size={13} />
-                      {res.table} - {res.area}
+                      {res.table?.name || 'Table pending'}
                     </span>
                   </div>
                 </div>
                 <div className="flex items-center gap-3 res-cust-res-actions">
                   <span className={`badge ${
-                    res.status === 'Confirmed' ? 'badge-confirmed' : 'badge-available'
+                    res.status === 'confirmed' ? 'badge-confirmed' : 'badge-available'
                   }`}>
-                    {res.status}
+                    {res.status || 'pending'}
                   </span>
                   {activeTab === 'upcoming' && (
                     <button className="text-dark-text-secondary hover:text-red-400 transition-colors cursor-pointer">
@@ -143,6 +139,11 @@ export default function CustomerDashboard() {
               </div>
             </div>
           ))}
+          {!loading && (activeTab === 'upcoming' ? upcomingList : historyList).length === 0 && (
+            <p className="text-dark-text-secondary p-4 bg-dark-bg-secondary rounded-xl border border-dark-border text-sm">
+              No {activeTab} reservations found.
+            </p>
+          )}
         </div>
       </div>
     </div>

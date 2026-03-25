@@ -24,7 +24,7 @@ export interface ReservationData {
 }
 
 const initialData: ReservationData = {
-  date: '19/02/2026',
+  date: new Date().toLocaleDateString('en-CA'), // en-CA defaults to YYYY-MM-DD natively in local time
   time: '',
   guests: 2,
   tableId: null,

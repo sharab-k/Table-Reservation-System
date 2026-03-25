@@ -8,7 +8,10 @@ import heroBg from '../assets/mask-group.png'
 
 export default function Landing() {
   const navigate = useNavigate()
-  const [date, setDate] = useState('19/02/2026')
+  // Generate today's date in local DD/MM/YYYY format
+  const today = new Date().toLocaleDateString('en-GB')
+  
+  const [date, setDate] = useState(today)
   const [time, setTime] = useState('17:00')
   const [guests, setGuests] = useState('2')
   const [orgName, setOrgName] = useState('Our Restaurant')
@@ -24,8 +27,11 @@ export default function Landing() {
         if (data.organization?.name) {
           setOrgName(data.organization.name)
         }
-      } catch (err) {
-        console.error('Failed to fetch org details', err)
+      } catch (err: any) {
+        // Suppress expected 404s for the demo test organization not being seeded yet in Dev
+        if (err.response?.status !== 404) {
+          console.error('Failed to fetch org details', err)
+        }
       }
     }
     fetchOrg()
