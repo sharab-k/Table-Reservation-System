@@ -1,113 +1,230 @@
 import { useState, useEffect } from 'react'
-import { Download, RefreshCw } from 'lucide-react'
 import { api } from '../../../services/api'
-import StatusBadge from '../../../components/StatusBadge'
+import { Users, MapPin, AlertCircle, CalendarRange } from 'lucide-react'
 
 interface ReservationTabProps {
   theme: 'dark' | 'light'
+  orgId: string
+  serverToday?: string
+  openingTime?: string
+  closingTime?: string
 }
 
-export default function ReservationTab({ theme }: ReservationTabProps) {
+export default function ReservationTab({ theme, orgId, serverToday }: ReservationTabProps) {
   const isDark = theme === 'dark'
+  const [tablesList, setTablesList] = useState<any[]>([])
   const [resList, setResList] = useState<any[]>([])
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  const fetchReservations = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true)
-      const orgId = 'default-org-id'
-      const { data } = await api.get(`/reservations?orgId=${orgId}`)
-      if (data.data) {
-        setResList(data.data)
-      }
+      const dateTarget = serverToday || new Date().toISOString().split('T')[0]
+      // Fetch Tables
+      const tablesRes = await api.get(`/organizations/${orgId}/tables`)
+      setTablesList(tablesRes.data.data || [])
+
+      // Fetch Today's Reservations
+      const resRes = await api.get(`/organizations/${orgId}/reservations?limit=100&sortOrder=desc&date=${dateTarget}`)
+      const fetchedRes = resRes.data.data || []
+      setResList(fetchedRes)
     } catch (err) {
-      console.error('Failed to fetch reservations:', err)
+      console.error('Failed to load reservation data:', err)
+      setError('Failed to load reservation data. Please try again.')
     } finally {
       setLoading(false)
     }
   }
 
   useEffect(() => {
-    fetchReservations()
-  }, [])
+    fetchData()
+  }, [orgId, serverToday])
+
+  // Get current status of a table
+  const getTableStatus = (tableId: string | number) => {
+    const tableRes = resList.filter(r => r.tableId === tableId || String(r.tableId) === String(tableId))
+    if (tableRes.length === 0) return 'available'
+
+    const now = new Date()
+    const currentH = now.getHours()
+    const currentM = now.getMinutes()
+    const currentTotalM = currentH * 60 + currentM
+
+    for (const res of tableRes) {
+      if (res.status === 'seated') return 'seated'
+      if (res.status === 'arriving') return 'arriving'
+      if (!res.startTime) continue
+
+      const [startH, startM] = res.startTime.split(':').map(Number)
+      const startTotalM = startH * 60 + startM
+      // default duration 120 mins
+      const duration = res.duration || 120
+      const endTotalM = startTotalM + duration
+
+      if (currentTotalM >= startTotalM && currentTotalM <= endTotalM) {
+        return 'seated' // They should be seated by now
+      } else if (startTotalM > currentTotalM && startTotalM - currentTotalM <= 60) {
+        return 'arriving'
+      }
+    }
+    return 'available'
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'arriving': return '#C99C63'
+      case 'seated': return '#E05D5D'
+      case 'available': return '#59A673'
+      default: return '#8b949e'
+    }
+  }
+
+  if (loading) {
+    return (
+      <div style={{
+        backgroundColor: isDark ? '#161B22' : '#ffffff',
+        padding: '32px',
+        color: isDark ? '#ffffff' : '#1f2937',
+        textAlign: 'center',
+        borderRadius: '8px'
+      }}>
+        Loading reservation data...
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div style={{
+        backgroundColor: isDark ? '#161B22' : '#ffffff',
+        padding: '32px',
+        color: '#ff6b6b',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: '8px',
+        borderRadius: '8px'
+      }}>
+        <AlertCircle size={20} />
+        {error}
+      </div>
+    )
+  }
+
+  const todayDateObj = new Date(serverToday || new Date().toISOString())
+  const dateStr = todayDateObj.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })
+  const timeStr = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false })
+
+  // Calculations for cards
+  const tableStatuses = tablesList.map(t => getTableStatus(t.id))
+  const availableCount = tableStatuses.filter(s => s === 'available').length
+  const bgColor = isDark ? '#0B1517' : '#f4f6f8'
+  const cardBgColor = isDark ? '#161B22' : '#ffffff'
+  const textColor = isDark ? '#ffffff' : '#111827'
+  const mutedTextColor = isDark ? '#8b949e' : '#6b7280'
+  const borderColor = isDark ? '#30363d' : '#e5e7eb'
 
   return (
-    <div>
-      <div className="res-admin-tab-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '24px' }}>
-        <h3 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0, color: isDark ? '#ffffff' : '#1f2937' }}>
-          Today's Reservations
-        </h3>
-        <button style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          fontSize: '0.875rem',
-          fontWeight: 600,
-          padding: '8px 16px',
-          backgroundColor: '#C99C63',
-          color: '#101A1C',
-          border: 'none',
-          borderRadius: '6px',
-          cursor: 'pointer'
-        }}>
-          <Download size={16} />
-          Export CSV
-        </button>
-      </div>
+    <div style={{ backgroundColor: bgColor, borderRadius: '8px', padding: '24px' }}>
 
-      <div style={{ overflowX: 'auto' }}>
-        <table style={{ width: '100%', fontSize: '0.875rem', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ borderBottom: `1px solid ${isDark ? '#30363d' : '#e5e7eb'}` }}>
-              {['Guest', 'Table', 'Time', 'Party Size', 'Status'].map((h) => (
-                <th key={h} style={{
-                  textAlign: 'left',
-                  padding: '16px', // spacious header padding
-                  fontWeight: 500,
-                  color: isDark ? '#8b949e' : '#6b7280'
-                }}>
-                  {h}
-                </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {loading && (
-              <tr><td colSpan={5} style={{ textAlign: 'center', padding: '16px', color: isDark ? '#8b949e' : '#6b7280' }}>Loading reservations...</td></tr>
-            )}
-            {!loading && resList.map((res) => (
-              <tr
-                key={res.id}
-                style={{
-                  borderBottom: `1px solid ${isDark ? '#30363d' : '#e5e7eb'}`,
-                  transition: 'background-color 0.2s',
-                  cursor: 'pointer'
-                }}
-                onMouseOver={(e) => e.currentTarget.style.backgroundColor = isDark ? '#161B22' : '#f9fafb'}
-                onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-              >
-                <td style={{ padding: '16px', fontWeight: 600, color: isDark ? '#ffffff' : '#1f2937' }}>
-                  {res.customer?.firstName} {res.customer?.lastName}
-                </td>
-                <td style={{ padding: '16px', color: isDark ? '#8b949e' : '#6b7280' }}>
-                  {res.table?.name || 'Unassigned'}
-                </td>
-                <td style={{ padding: '16px', color: isDark ? '#8b949e' : '#6b7280' }}>
-                  {new Date(res.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                </td>
-                <td style={{ padding: '16px', color: isDark ? '#8b949e' : '#6b7280' }}>
-                  {res.partySize}
-                </td>
-                <td style={{ padding: '16px' }}>
-                  <StatusBadge status={res.status || 'pending'} />
-                </td>
-              </tr>
-            ))}
-            {!loading && resList.length === 0 && (
-              <tr><td colSpan={5} style={{ textAlign: 'center', padding: '16px', color: isDark ? '#8b949e' : '#6b7280' }}>No reservations found.</td></tr>
-            )}
-          </tbody>
-        </table>
+      {/* Main Container */}
+      <div style={{
+        backgroundColor: cardBgColor,
+        borderRadius: '12px',
+        border: `1px solid ${borderColor}`,
+        overflow: 'hidden'
+      }}>
+
+        {/* Content Region */}
+        <div style={{ padding: '24px' }}>
+          
+          {/* Header */}
+          <div style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'flex-start',
+            marginBottom: '24px'
+          }}>
+            <div>
+              <h3 style={{ 
+                fontSize: '1.25rem', 
+                fontWeight: 600, 
+                margin: '0 0 4px 0', 
+                color: textColor 
+              }}>
+                {dateStr}
+              </h3>
+              <p style={{ 
+                color: mutedTextColor, 
+                fontSize: '0.875rem', 
+                margin: 0 
+              }}>
+                at {timeStr}
+              </p>
+            </div>
+            <p style={{ 
+              fontSize: '0.875rem', 
+              color: textColor 
+            }}>
+              <span style={{ fontWeight: 600 }}>{availableCount}</span> tables available
+            </p>
+          </div>
+
+          {/* Grid */}
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(2, 1fr)',
+            gap: '16px'
+          }}>
+              {tablesList.map(table => {
+                const status = getTableStatus(table.id)
+                const areaName = table.floor_area?.name || 'Unassigned'
+                return (
+                  <div key={table.id} style={{
+                    border: `1px solid ${borderColor}`,
+                    borderRadius: '8px',
+                    padding: '16px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '12px'
+                  }}>
+                    <div style={{
+                      width: '10px',
+                      height: '10px',
+                      backgroundColor: getStatusColor(status),
+                      borderRadius: '50%',
+                      flexShrink: 0
+                    }} />
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '24px' }}>
+                      
+                      <h4 style={{ 
+                        fontSize: '0.875rem', 
+                        fontWeight: 600, 
+                        margin: 0, 
+                        color: textColor,
+                        width: '60px' // fixed width to align
+                      }}>
+                        {table.name}
+                      </h4>
+                      
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: mutedTextColor }}>
+                        <Users size={14} />
+                        <span style={{ fontSize: '0.8125rem' }}>Capacity: {table.capacity} seats</span>
+                      </div>
+
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: mutedTextColor }}>
+                        <MapPin size={14} />
+                        <span style={{ fontSize: '0.8125rem' }}>{areaName}</span>
+                      </div>
+
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+
+        </div>
       </div>
     </div>
   )

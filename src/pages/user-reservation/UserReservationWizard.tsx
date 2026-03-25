@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { api } from '../../services/api'
 import DarkProgressBar from '../../components/DarkProgressBar'
@@ -48,9 +48,9 @@ export default function UserReservationWizard() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const updateData = (updates: Partial<ReservationData>) => {
+  const updateData = useCallback((updates: Partial<ReservationData>) => {
     setData((prev) => ({ ...prev, ...updates }))
-  }
+  }, [])
 
   const nextStep = async () => {
     if (currentStep < TOTAL_STEPS) {
@@ -60,9 +60,10 @@ export default function UserReservationWizard() {
         setLoading(true)
         setError(null)
         
-        // Convert date DD/MM/YYYY to YYYY-MM-DD
-        const [day, month, year] = data.date.split('/')
-        const formattedDate = `${year}-${month}-${day}`
+        // Ensure date is in YYYY-MM-DD format
+        const formattedDate = data.date.includes('/') 
+          ? data.date.split('/').reverse().join('-') // Handle DD/MM/YYYY if it exists
+          : data.date; // already YYYY-MM-DD
         
         const payload = {
           reservationDate: formattedDate,
@@ -77,9 +78,8 @@ export default function UserReservationWizard() {
           source: 'website'
         }
 
-        // Authenticated users post to /reservations. 
-        // We assume default restaurant ID for now.
-        await api.post('/reservations', payload)
+        // Public reservation endpoint
+        await api.post(`/public/${restaurantSlug}/reserve`, payload)
         
         navigate('/user-booking-confirmed', { state: data })
       } catch (err: any) {
@@ -99,11 +99,13 @@ export default function UserReservationWizard() {
   }
 
   const percentage = Math.round((currentStep / TOTAL_STEPS) * 100)
+  const searchParams = new URLSearchParams(window.location.search)
+  const restaurantSlug = searchParams.get('restaurant') || 'default-restaurant'
 
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return <UserStepDateTime data={data} updateData={updateData} />
+        return <UserStepDateTime data={data} updateData={updateData} restaurantSlug={restaurantSlug} />
       case 2:
         return <UserStepTableSelect data={data} updateData={updateData} />
       case 3:

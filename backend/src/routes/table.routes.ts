@@ -3,7 +3,7 @@ import { tableController } from '../controllers/table.controller';
 import { authenticate } from '../middleware/auth';
 import { requireMinRole, requireRestaurantAccess } from '../middleware/rbac';
 import { validate } from '../middleware/validator';
-import { createTableSchema, updateTableSchema, createAreaSchema, updateAreaSchema } from '../validators/table.validator';
+import { createTableSchema, updateTableSchema, createAreaSchema, updateAreaSchema, bulkUpdatePositionsSchema } from '../validators/table.validator';
 import { UserRole } from '../types/enums';
 import multer from 'multer';
 
@@ -65,6 +65,12 @@ router.post('/import',
   requireMinRole(UserRole.RESTAURANT_ADMIN),
   upload.single('file'),
   (req, res, next) => tableController.importTables(req, res, next)
+);
+
+router.put('/positions',
+  requireMinRole(UserRole.MANAGER),
+  validate(bulkUpdatePositionsSchema),
+  (req, res, next) => tableController.bulkUpdatePositions(req, res, next)
 );
 
 router.put('/:id',

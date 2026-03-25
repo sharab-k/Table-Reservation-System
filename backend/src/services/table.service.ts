@@ -149,6 +149,45 @@ export class TableService {
   }
 
   /**
+   * Bulk update table coordinates for the floor plan editor
+   */
+  async bulkUpdatePositions(
+    restaurantId: string,
+    updates: { id: string; positionX: number; positionY: number }[]
+  ) {
+    if (!updates.length) return [];
+
+    // Map into upsert payload. We must include all required fields or rely on
+    // partial updates. Supabase upsert will completely replace the row if the id matches
+    // unless we use specific constraints. Wait, upserting partial records requires
+    // avoiding NOT NULL constraint failures or overwriting other fields.
+    // Instead, let's just do a bulk update using raw SQL via RPC or parallel promises.
+    // Since parallel updates are safer for partials and we have a ~20 table limit:
+    
+    const promises = updates.map(update => 
+      supabaseAdmin
+        .from('tables')
+        .update({ 
+          position_x: update.positionX, 
+          position_y: update.positionY,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', update.id)
+        .eq('restaurant_id', restaurantId)
+    );
+
+    const results = await Promise.all(promises);
+    
+    const errors = results.filter(r => r.error);
+    if (errors.length > 0) {
+      console.error('Errors updating positions:', errors.map(e => e.error));
+      throw new AppError('Failed to save some table positions', 500);
+    }
+
+    return { success: true, updatedCount: updates.length };
+  }
+
+  /**
    * Bulk import tables from parsed CSV data.
    */
   async importTables(

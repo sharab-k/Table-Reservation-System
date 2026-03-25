@@ -148,6 +148,16 @@ export class TableController {
       next(error);
     }
   }
+
+  async bulkUpdatePositions(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+    try {
+      const { tables } = req.body;
+      const result = await tableService.bulkUpdatePositions(param(req, 'orgId'), tables);
+      res.json({ success: true, data: result });
+    } catch (error) {
+      next(error);
+    }
+  }
 }
 
 export const tableController = new TableController();

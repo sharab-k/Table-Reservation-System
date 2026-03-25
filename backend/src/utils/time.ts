@@ -41,8 +41,23 @@ export const timeRangesOverlap = (
 };
 
 /**
- * Get today's date in YYYY-MM-DD format.
+ * Get today's date in YYYY-MM-DD format, optionally in a specific timezone.
+ * Defaults to UTC if no timezone is provided or if the environment doesn't support it.
  */
-export const getTodayDate = (): string => {
+export const getTodayDate = (timezone?: string): string => {
+  if (timezone) {
+    try {
+      // Use Intl.DateTimeFormat to get the date in the specific timezone
+      const formatter = new Intl.DateTimeFormat('en-CA', {
+        timeZone: timezone,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+      });
+      return formatter.format(new Date());
+    } catch (err) {
+      console.error(`Invalid timezone provided: ${timezone}. Falling back to UTC.`);
+    }
+  }
   return new Date().toISOString().split('T')[0];
 };

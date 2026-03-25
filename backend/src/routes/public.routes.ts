@@ -4,6 +4,7 @@ import { reservationService } from '../services/reservation.service';
 import { validate } from '../middleware/validator';
 import { createReservationSchema } from '../validators/reservation.validator';
 import { publicApiLimiter } from '../middleware/rateLimiter';
+import { tableService } from '../services/table.service';
 
 const router = Router();
 
@@ -67,6 +68,44 @@ router.get('/:slug/availability', async (req: Request, res: Response, next: Next
     );
 
     res.json({ success: true, data: available });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /public/:slug/slots — Get all available and locked slots for a given day
+router.get('/:slug/slots', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const org = await organizationService.getBySlug(param(req, 'slug'));
+    const date = req.query.date as string;
+    const partySize = req.query.partySize as string;
+
+    if (!date || !partySize) {
+      res.status(400).json({
+        success: false,
+        error: 'date and partySize query parameters are required',
+      });
+      return;
+    }
+
+    const slotData = await reservationService.getAvailableTimeSlots(
+      org.id,
+      date,
+      parseInt(partySize, 10)
+    );
+
+    res.json({ success: true, data: slotData });
+  } catch (error) {
+    next(error);
+  }
+});
+
+// GET /public/:slug/tables — Get all active tables for an organization
+router.get('/:slug/tables', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const org = await organizationService.getBySlug(param(req, 'slug'));
+    const tables = await tableService.listTables(org.id);
+    res.json({ success: true, data: tables });
   } catch (error) {
     next(error);
   }

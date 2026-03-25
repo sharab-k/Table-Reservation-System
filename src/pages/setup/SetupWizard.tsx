@@ -4,11 +4,13 @@ import Navbar from '../../components/Navbar'
 import ProgressBar from '../../components/ProgressBar'
 import { X, Upload, Download, Eye, EyeOff, ChefHat, MapPin, Clock } from 'lucide-react'
 import { api } from '../../services/api'
+import { useAuth } from '../../context/AuthContext'
 
 const TOTAL_STEPS = 4
 
 export default function SetupWizard() {
   const navigate = useNavigate()
+  const { user } = useAuth()
   const [currentStep, setCurrentStep] = useState(1)
 
   // Step 1: Restaurant Details
@@ -39,7 +41,12 @@ export default function SetupWizard() {
     } else {
       try {
         setIsSubmitting(true)
-        const orgId = 'default-org-id'
+        const orgId = user?.restaurantId
+        if (!orgId) {
+          alert('No restaurant found for your account. Please sign up again.')
+          setIsSubmitting(false)
+          return
+        }
         
         await api.put(`/organizations/${orgId}`, {
           address: details.address,

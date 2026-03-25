@@ -29,25 +29,25 @@ export default function SignUp() {
     setLoading(true)
 
     try {
-      // Split ownerName loosely
-      const nameParts = form.ownerName.split(' ');
-      const firstName = nameParts[0] || '';
-      const lastName = nameParts.slice(1).join(' ') || '';
-
-      const response = await api.post('/auth/customer-signup', {
-        firstName,
-        lastName,
+      const response = await api.post('/auth/signup', {
+        businessName: form.businessName,
+        ownerName: form.ownerName,
         email: form.email,
         password: form.password,
+        country: form.country,
+        timezone: form.timezone,
       });
 
-      const { token, user } = response.data.data;
+      const { token, user, restaurant } = response.data.data;
       
-      // Store in context
-      login(token, user);
+      // Store in context, including the restaurant ID for the setup wizard
+      login(token, {
+        ...user,
+        restaurantId: restaurant?.id,
+      });
 
-      // Redirect members to dashboard
-      navigate('/dashboard')
+      // Redirect to setup wizard for new restaurant owners
+      navigate('/setup')
     } catch (err: any) {
       setError(err.response?.data?.error || 'Failed to sign up. Please try again.')
     } finally {

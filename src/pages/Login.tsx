@@ -18,14 +18,21 @@ export default function Login() {
     setError('')
     setLoading(true)
 
-    try {
-      const response = await api.post('/auth/customer-login', { email, password })
-      const { token, user } = response.data.data
+    const handleSuccess = (response: any) => {
+      const { token, user, restaurant } = response.data.data
       
-      login(token, user)
+      // Store in auth context. Add restaurantId for staff/admins
+      login(token, {
+        ...user,
+        restaurantId: restaurant?.id
+      })
       
       if (user.role === 'admin' || user.role === 'super_admin') {
-        navigate('/admin')
+        if (restaurant && restaurant.setupCompleted === false) {
+          navigate('/setup')
+        } else {
+          navigate('/admin')
+        }
       } else if (user.role === 'manager' || user.role === 'host') {
         navigate('/staff/tables')
       } else {
@@ -36,8 +43,27 @@ export default function Login() {
           navigate('/dashboard')
         }
       }
+    }
+
+    try {
+      // 1. Try Staff Login First
+      const response = await api.post('/auth/login', { email, password })
+      handleSuccess(response)
     } catch (err: any) {
-      setError(err.response?.data?.error || 'Invalid email or password')
+      if (
+        err.response?.status === 401 && 
+        err.response?.data?.error === 'No active staff account found for this email'
+      ) {
+        // 2. Fallback to Customer Login if it's not a staff email
+        try {
+          const customerResponse = await api.post('/auth/customer-login', { email, password })
+          handleSuccess(customerResponse)
+        } catch (customerErr: any) {
+          setError(customerErr.response?.data?.error || 'Invalid email or password')
+        }
+      } else {
+        setError(err.response?.data?.error || 'Invalid email or password')
+      }
     } finally {
       setLoading(false)
     }

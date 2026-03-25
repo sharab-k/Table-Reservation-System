@@ -1,38 +1,77 @@
-import { useState } from 'react'
-import { Users, MapPin } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Users, MapPin, Loader2 } from 'lucide-react'
+import { api } from '../../services/api'
 import type { ReservationData } from './UserReservationWizard'
+
+interface Table {
+  id: string
+  name: string
+  capacity: number
+  area: { id: string; name: string } | null
+}
 
 interface UserStepTableSelectProps {
   data: ReservationData
   updateData: (updates: Partial<ReservationData>) => void
+  restaurantSlug: string
 }
 
-const tables = {
-  Window: [
-    { id: 't1', name: 'Table 1', capacity: 2, location: 'By the window' },
-    { id: 't2', name: 'Table 2', capacity: 2, location: 'Center area' },
-  ],
-  'Main Dining': [
-    { id: 't3', name: 'Table 3', capacity: 4, location: 'Private corner' },
-    { id: 't4', name: 'Table 4', capacity: 4, location: 'Near the bar' },
-  ],
-  Outdoor: [
-    { id: 't5', name: 'Table 5', capacity: 6, location: 'By the window' },
-    { id: 't6', name: 'Table 6', capacity: 6, location: 'Center area' },
-  ],
-}
+export default function UserStepTableSelect({ data, updateData, restaurantSlug }: UserStepTableSelectProps) {
+  const [loading, setLoading] = useState(true)
+  const [groupedTables, setGroupedTables] = useState<Record<string, Table[]>>({})
 
-export default function UserStepTableSelect({ data, updateData }: UserStepTableSelectProps) {
-  const [selectedTable, setSelectedTable] = useState<string | null>(data.tableId)
+  useEffect(() => {
+    const fetchTables = async () => {
+      try {
+        setLoading(true)
+        const res = await api.get(`/public/${restaurantSlug}/tables`)
+        if (res.data?.success) {
+          const rawTables: Table[] = res.data.data
+          const groups: Record<string, Table[]> = {}
+          
+          rawTables.forEach(table => {
+            const areaName = table.area?.name || 'Common Area'
+            if (!groups[areaName]) groups[areaName] = []
+            groups[areaName].push(table)
+          })
+          
+          setGroupedTables(groups)
+        }
+      } catch (error) {
+        console.error('Failed to fetch tables:', error)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchTables()
+  }, [restaurantSlug])
 
-  const handleSelect = (table: typeof tables.Window[0]) => {
-    setSelectedTable(table.id)
+  const handleSelect = (table: Table) => {
     updateData({
       tableId: table.id,
       tableName: table.name,
       tableCapacity: table.capacity,
-      tableLocation: table.location,
+      tableLocation: table.area?.name || 'General',
     })
+  }
+
+  if (loading) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px', gap: '16px' }}>
+        <Loader2 className="animate-spin" size={32} style={{ color: '#C99C63' }} />
+        <p style={{ color: '#8b949e' }}>Loading available tables...</p>
+      </div>
+    )
+  }
+
+  const hasTables = Object.keys(groupedTables).length > 0
+
+  if (!hasTables) {
+    return (
+      <div style={{ textAlign: 'center', padding: '40px' }}>
+        <p style={{ color: '#8b949e' }}>No tables currently available for selection.</p>
+      </div>
+    )
   }
 
   return (
@@ -44,7 +83,7 @@ export default function UserStepTableSelect({ data, updateData }: UserStepTableS
         Select from our available tables
       </p>
 
-      {Object.entries(tables).map(([area, areaTables]) => (
+      {Object.entries(groupedTables).map(([area, areaTables]) => (
         <div key={area} style={{ marginBottom: '24px' }}>
           {/* Area Divider */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '16px' }}>
@@ -60,7 +99,7 @@ export default function UserStepTableSelect({ data, updateData }: UserStepTableS
             gap: '16px'
           }}>
             {areaTables.map((table) => {
-              const isSelected = selectedTable === table.id
+              const isSelected = data.tableId === table.id
               return (
                 <button
                   key={table.id}
@@ -100,10 +139,12 @@ export default function UserStepTableSelect({ data, updateData }: UserStepTableS
                           <Users size={13} />
                           Capacity: {table.capacity} seats
                         </span>
-                        <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          <MapPin size={13} />
-                          {table.location}
-                        </span>
+                        {table.area && (
+                          <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <MapPin size={13} />
+                            {table.area.name}
+                          </span>
+                        )}
                       </div>
                     </div>
                   </div>

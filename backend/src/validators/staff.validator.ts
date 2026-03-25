@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 export const inviteStaffSchema = z.object({
   email: z.string().email(),
-  name: z.string().min(2).max(255),
+  name: z.string().min(2).max(255).optional(),
   role: z.enum(['manager', 'host', 'viewer']),
 });
 

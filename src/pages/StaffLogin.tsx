@@ -1,17 +1,39 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Eye, EyeOff } from 'lucide-react'
+import { api } from '../services/api'
+import { useAuth } from '../context/AuthContext'
 
 export default function StaffLogin() {
   const navigate = useNavigate()
+  const { login } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Navigate to the staff table management page as requested
-    navigate('/staff/tables')
+    setLoading(true)
+    setError('')
+
+    try {
+      const { data } = await api.post('/auth/staff-login', { email, password })
+      const { token, user, restaurant } = data.data
+      
+      login(token, {
+        ...user,
+        restaurantId: restaurant?.id
+      })
+      
+      navigate('/staff/tables')
+    } catch (err: any) {
+      console.error('Staff login failed:', err)
+      setError(err.response?.data?.error || 'Failed to login. Please check your credentials.')
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -50,6 +72,20 @@ export default function StaffLogin() {
         <p style={{ fontSize: '0.875rem', color: '#6b7280', textAlign: 'center', margin: '0 0 24px 0', lineHeight: 1.4 }}>
           Log in to access your account and manage everything in one place.
         </p>
+
+        {error && (
+          <div style={{
+            backgroundColor: '#fee2e2',
+            color: '#b91c1c',
+            padding: '12px',
+            borderRadius: '8px',
+            marginBottom: '16px',
+            fontSize: '0.875rem',
+            textAlign: 'center'
+          }}>
+            {error}
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column' }}>
           {/* Email Field */}

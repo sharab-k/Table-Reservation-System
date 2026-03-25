@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { api } from '../../services/api'
 import DarkProgressBar from '../../components/DarkProgressBar'
@@ -59,9 +59,9 @@ export default function BookATableWizard() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const updateData = (updates: Partial<ReservationData>) => {
+  const updateData = useCallback((updates: Partial<ReservationData>) => {
     setData((prev) => ({ ...prev, ...updates }))
-  }
+  }, [])
 
   const nextStep = async () => {
     if (currentStep < TOTAL_STEPS) {
@@ -71,9 +71,10 @@ export default function BookATableWizard() {
         setLoading(true)
         setError(null)
         
-        // Convert date DD/MM/YYYY to YYYY-MM-DD
-        const [day, month, year] = data.date.split('/')
-        const formattedDate = `${year}-${month}-${day}`
+        // Ensure date is in YYYY-MM-DD format
+        const formattedDate = data.date.includes('/')
+          ? data.date.split('/').reverse().join('-')
+          : data.date;
         
         const payload = {
           reservationDate: formattedDate,
@@ -88,9 +89,8 @@ export default function BookATableWizard() {
           source: 'website'
         }
 
-        // We use a default restaurant ID or slug if none is in context. Assuming 'the-golden-spoon' for now.
-        // In a real app, this comes from URL params like /:slug/book-a-table
-        await api.post('/public/the-golden-spoon/reserve', payload)
+        // Public reservation endpoint
+        await api.post(`/public/${restaurantSlug}/reserve`, payload)
         
         navigate('/public-booking-confirmed', { state: data })
       } catch (err: any) {
@@ -109,14 +109,16 @@ export default function BookATableWizard() {
     }
   }
 
+  const searchParams = new URLSearchParams(window.location.search)
+  const restaurantSlug = searchParams.get('restaurant') || 'default-restaurant'
   const percentage = Math.round((currentStep / TOTAL_STEPS) * 100)
 
   const renderStep = () => {
     switch (currentStep) {
       case 1:
-        return <UserStepDateTime data={data} updateData={updateData} />
+        return <UserStepDateTime data={data} updateData={updateData} restaurantSlug={restaurantSlug} />
       case 2:
-        return <UserStepTableSelect data={data} updateData={updateData} />
+        return <UserStepTableSelect data={data} updateData={updateData} restaurantSlug={restaurantSlug} />
       case 3:
         return <UserStepContactInfo data={data} updateData={updateData} />
       case 4:

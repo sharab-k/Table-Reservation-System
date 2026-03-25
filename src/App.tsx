@@ -20,6 +20,7 @@ import PublicBookingConfirmed from './pages/public-reservation/PublicBookingConf
 import CustomerSignUp from './pages/CustomerSignUp'
 import ForgotPassword from './pages/ForgotPassword'
 import StaffForgotPassword from './pages/StaffForgotPassword'
+import AcceptInvite from './pages/AcceptInvite'
 
 function App() {
   return (
@@ -37,6 +38,7 @@ function App() {
       <Route path="/setup" element={<SetupWizard />} />
       <Route path="/staff-login" element={<StaffLogin />} />
       <Route path="/staff/tables" element={<StaffTableManagement />} />
+      <Route path="/accept-invite" element={<AcceptInvite />} />
       <Route path="/logged-in-tab-res" element={<LoggedInTabRes />} />
       <Route path="/welcome" element={<Welcome />} />
       <Route path="/premium-reserve" element={<PremiumReservation />} />

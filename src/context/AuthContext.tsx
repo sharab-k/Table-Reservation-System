@@ -8,6 +8,7 @@ export interface User {
   role: UserRole;
   name: string;
   isVip?: boolean;
+  restaurantId?: string;
 }
 
 interface AuthContextType {

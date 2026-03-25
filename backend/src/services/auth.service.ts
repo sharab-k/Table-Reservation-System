@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import { supabaseAdmin } from '../config/database';
 import { generateToken, generateRefreshToken } from '../middleware/auth';
 import { generateUniqueSlug } from '../utils/slug';
+import { createClient } from '@supabase/supabase-js';
 import { SignupDto, LoginDto, StaffLoginDto, AuthResponse, JwtPayload, CustomerSignupDto, CustomerLoginDto } from '../types/api.types';
 import { UserRole } from '../types/enums';
 import { AppError, NotFoundError, ConflictError } from '../middleware/errorHandler';
@@ -97,7 +98,12 @@ export class AuthService {
    * Login for restaurant admin/owner.
    */
   async login(dto: LoginDto): Promise<AuthResponse> {
-    const { data: authData, error: authError } = await supabaseAdmin.auth.signInWithPassword({
+    // Use a fresh anon client for sign-in to avoid mutating the global admin client
+    const tempClient = createClient(process.env.SUPABASE_URL as string, process.env.SUPABASE_ANON_KEY as string, {
+      auth: { persistSession: false },
+    });
+
+    const { data: authData, error: authError } = await tempClient.auth.signInWithPassword({
       email: dto.email,
       password: dto.password,
     });
@@ -440,7 +446,12 @@ export class AuthService {
    * Login for customer members.
    */
   async customerLogin(dto: CustomerLoginDto): Promise<AuthResponse> {
-    const { data: authData, error: authError } = await supabaseAdmin.auth.signInWithPassword({
+    // Use a fresh anon client for sign-in to avoid mutating the global admin client
+    const tempClient = createClient(process.env.SUPABASE_URL as string, process.env.SUPABASE_ANON_KEY as string, {
+      auth: { persistSession: false },
+    });
+
+    const { data: authData, error: authError } = await tempClient.auth.signInWithPassword({
       email: dto.email,
       password: dto.password,
     });

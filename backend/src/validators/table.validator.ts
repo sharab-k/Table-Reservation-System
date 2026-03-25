@@ -17,6 +17,16 @@ export const updateTableSchema = createTableSchema.partial().extend({
   isActive: z.boolean().optional(),
 });
 
+export const bulkUpdatePositionsSchema = z.object({
+  tables: z.array(
+    z.object({
+      id: z.string().uuid(),
+      positionX: z.number(),
+      positionY: z.number(),
+    })
+  ).max(200),
+});
+
 export const createAreaSchema = z.object({
   name: z.string().min(1).max(100),
   displayOrder: z.number().int().optional(),

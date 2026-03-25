@@ -1,5 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Calendar, AlertCircle } from 'lucide-react'
+import { api } from '../../services/api'
 import TimeSlotPicker from '../../components/TimeSlotPicker'
 import GuestCounter from '../../components/GuestCounter'
 import WaitingListModal from '../../components/WaitingListModal'
@@ -10,15 +11,36 @@ interface StepDateTimeProps {
   updateData: (updates: Partial<ReservationData>) => void
 }
 
-const TIME_SLOTS = [
-  '17:00', '17:30', '18:00', '18:30', '19:00',
-  '19:30', '20:00', '20:30', '21:00', '21:30',
-]
-
 export default function StepDateTime({ data, updateData }: StepDateTimeProps) {
   const [showWaitingList, setShowWaitingList] = useState(false)
-  const fullyBooked = false // Toggle to show fully booked state
-  const conflictSlots = ['20:30'] // Simulating a booked slot
+  const [timeSlots, setTimeSlots] = useState<string[]>([])
+  const [conflictSlots, setConflictSlots] = useState<string[]>([])
+  const [fullyBooked, setFullyBooked] = useState(false)
+
+  useEffect(() => {
+    const fetchSlots = async () => {
+      if (!data.date || !data.guests) return
+      try {
+        const res = await api.get(`/public/default-restaurant/slots`, {
+          params: { date: data.date, partySize: data.guests }
+        })
+        if (res.data?.success) {
+          const { allSlots, availableSlots } = res.data.data
+          setTimeSlots(allSlots)
+          const conflicts = allSlots.filter((slot: string) => !availableSlots.includes(slot))
+          setConflictSlots(conflicts)
+          setFullyBooked(availableSlots.length === 0 && allSlots.length > 0)
+          
+          if (data.time && conflicts.includes(data.time)) {
+             updateData({ time: '' })
+          }
+        }
+      } catch (error) {
+        console.error('Failed to fetch slots:', error)
+      }
+    }
+    fetchSlots()
+  }, [data.date, data.guests])
 
   return (
     <div>
@@ -80,13 +102,17 @@ export default function StepDateTime({ data, updateData }: StepDateTimeProps) {
 
       {/* Time Slots */}
       <div style={{ marginBottom: '32px' }}>
-        <TimeSlotPicker
-          slots={TIME_SLOTS}
-          selectedSlot={data.time}
-          onSelect={(slot) => updateData({ time: slot })}
-          disabledSlots={conflictSlots}
-          fullyBooked={fullyBooked}
-        />
+        {timeSlots.length === 0 ? (
+          <p style={{ color: '#6b7280', fontSize: '0.875rem' }}>Loading time slots...</p>
+        ) : (
+          <TimeSlotPicker
+            slots={timeSlots}
+            selectedSlot={data.time}
+            onSelect={(slot) => updateData({ time: slot })}
+            disabledSlots={conflictSlots}
+            fullyBooked={fullyBooked}
+          />
+        )}
       </div>
 
       {/* Guest Counter */}

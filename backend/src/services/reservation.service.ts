@@ -44,20 +44,29 @@ export class ReservationService {
       );
     }
 
-    // Sorting
-    const sortBy = filters.sortBy || 'start_time';
+    // Sorting - Default to date and time
+    const sortBy = filters.sortBy || 'reservation_date';
     const sortOrder = filters.sortOrder === 'desc' ? false : true;
-    query = query.order(sortBy, { ascending: sortOrder });
+    
+    if (sortBy === 'reservation_date') {
+      query = query.order('reservation_date', { ascending: sortOrder })
+                   .order('start_time', { ascending: true });
+    } else {
+      query = query.order(sortBy, { ascending: sortOrder });
+    }
 
     // Pagination
     query = query.range(offset, offset + limit - 1);
 
     const { data, error, count } = await query;
 
-    if (error) throw new AppError('Failed to fetch reservations', 500);
+    if (error) {
+      console.error('Supabase fetch reservations error:', error);
+      throw new AppError('Failed to fetch reservations', 500);
+    }
 
     return {
-      reservations: (data || []).map(this.formatReservation),
+      reservations: (data || []).map(this.formatReservation.bind(this)),
       meta: buildPaginationMeta(page, limit, count || 0),
     };
   }
@@ -207,7 +216,7 @@ export class ReservationService {
   }
 
   /**
-   * Update reservation status with transition validation.
+   * Update reservation status.
    */
   async updateStatus(
     reservationId: string,
@@ -216,7 +225,6 @@ export class ReservationService {
     userId?: string,
     reason?: string
   ) {
-    // Get current reservation
     const { data: current, error: fetchError } = await supabaseAdmin
       .from('reservations')
       .select('status')
@@ -226,13 +234,9 @@ export class ReservationService {
 
     if (fetchError || !current) throw new NotFoundError('Reservation');
 
-    // Validate transition
     const validNext = VALID_TRANSITIONS[current.status] || [];
     if (!validNext.includes(newStatus)) {
-      throw new AppError(
-        `Cannot transition from '${current.status}' to '${newStatus}'`,
-        400
-      );
+      throw new AppError(`Cannot transition from '${current.status}' to '${newStatus}'`, 400);
     }
 
     const updateData: Record<string, any> = {
@@ -240,17 +244,10 @@ export class ReservationService {
       updated_at: new Date().toISOString(),
     };
 
-    // Set timestamp fields based on status
     switch (newStatus) {
-      case ReservationStatus.CONFIRMED:
-        updateData.confirmed_at = new Date().toISOString();
-        break;
-      case ReservationStatus.SEATED:
-        updateData.seated_at = new Date().toISOString();
-        break;
-      case ReservationStatus.COMPLETED:
-        updateData.completed_at = new Date().toISOString();
-        break;
+      case ReservationStatus.CONFIRMED: updateData.confirmed_at = new Date().toISOString(); break;
+      case ReservationStatus.SEATED: updateData.seated_at = new Date().toISOString(); break;
+      case ReservationStatus.COMPLETED: updateData.completed_at = new Date().toISOString(); break;
       case ReservationStatus.CANCELLED:
         updateData.cancelled_at = new Date().toISOString();
         updateData.cancelled_by = userId || null;
@@ -268,7 +265,6 @@ export class ReservationService {
 
     if (error || !data) throw new AppError('Failed to update status', 500);
 
-    // If completed, update customer visit count
     if (newStatus === ReservationStatus.COMPLETED && data.customer_id) {
       await supabaseAdmin.rpc('increment_customer_visits', {
         p_customer_id: data.customer_id,
@@ -283,17 +279,11 @@ export class ReservationService {
    * Cancel a reservation.
    */
   async cancel(reservationId: string, restaurantId: string, userId?: string, reason?: string) {
-    return this.updateStatus(
-      reservationId,
-      restaurantId,
-      ReservationStatus.CANCELLED,
-      userId,
-      reason
-    );
+    return this.updateStatus(reservationId, restaurantId, ReservationStatus.CANCELLED, userId, reason);
   }
 
   /**
-   * Get calendar view data (grouped by table for a specific date).
+   * Get calendar view data.
    */
   async getCalendarView(restaurantId: string, date: string) {
     const { data: reservations, error } = await supabaseAdmin
@@ -306,7 +296,6 @@ export class ReservationService {
 
     if (error) throw new AppError('Failed to fetch calendar data', 500);
 
-    // Get all tables for this restaurant
     const { data: tables } = await supabaseAdmin
       .from('tables')
       .select('*, floor_areas(id, name)')
@@ -314,7 +303,6 @@ export class ReservationService {
       .eq('is_active', true)
       .order('table_number', { ascending: true });
 
-    // Group reservations by table
     const tableMap: Record<string, any[]> = {};
     for (const table of (tables || [])) {
       tableMap[table.id] = [];
@@ -326,7 +314,6 @@ export class ReservationService {
       }
     }
 
-    // Build sections grouped by area
     const areaMap: Record<string, any[]> = {};
     for (const table of (tables || [])) {
       const areaName = table.floor_areas?.name || 'Unassigned';
@@ -342,23 +329,15 @@ export class ReservationService {
 
     return {
       date,
-      sections: Object.entries(areaMap).map(([area, tables]) => ({
-        area,
-        tables,
-      })),
+      sections: Object.entries(areaMap).map(([area, tables]) => ({ area, tables })),
       totalReservations: (reservations || []).length,
     };
   }
 
   /**
-   * Check availability for a specific table on a date/time.
+   * Check table availability.
    */
-  async checkTableAvailability(
-    tableId: string,
-    date: string,
-    startTime: string,
-    endTime: string
-  ): Promise<boolean> {
+  async checkTableAvailability(tableId: string, date: string, startTime: string, endTime: string): Promise<boolean> {
     const { data: conflicts } = await supabaseAdmin
       .from('reservations')
       .select('id, start_time, end_time')
@@ -368,26 +347,18 @@ export class ReservationService {
 
     if (!conflicts || conflicts.length === 0) return true;
 
-    // Check time overlap
     for (const conflict of conflicts) {
       if (timeRangesOverlap(startTime, endTime, conflict.start_time, conflict.end_time)) {
         return false;
       }
     }
-
     return true;
   }
 
   /**
-   * Get available tables for a date/time/party size.
+   * Get available tables.
    */
-  async getAvailableTables(
-    restaurantId: string,
-    date: string,
-    startTime: string,
-    partySize: number
-  ) {
-    // Get restaurant settings for duration
+  async getAvailableTables(restaurantId: string, date: string, startTime: string, partySize: number) {
     const { data: org } = await supabaseAdmin
       .from('organizations')
       .select('default_reservation_duration_min')
@@ -397,7 +368,6 @@ export class ReservationService {
     const duration = org?.default_reservation_duration_min || 90;
     const endTime = addMinutesToTime(startTime, duration);
 
-    // Get all active tables with sufficient capacity
     const { data: tables } = await supabaseAdmin
       .from('tables')
       .select('*, floor_areas(id, name)')
@@ -408,11 +378,9 @@ export class ReservationService {
 
     if (!tables || tables.length === 0) return [];
 
-    // Check each table for conflicts
     const available = [];
     for (const table of tables) {
-      const isAvailable = await this.checkTableAvailability(table.id, date, startTime, endTime);
-      if (isAvailable) {
+      if (await this.checkTableAvailability(table.id, date, startTime, endTime)) {
         available.push({
           id: table.id,
           tableNumber: table.table_number,
@@ -424,12 +392,52 @@ export class ReservationService {
         });
       }
     }
-
     return available;
   }
 
   /**
-   * Export reservations as CSV string for a given restaurant and optional date range.
+   * Get available time slots.
+   */
+  async getAvailableTimeSlots(restaurantId: string, date: string, partySize: number) {
+    const { data: org } = await supabaseAdmin
+      .from('organizations')
+      .select('opening_time, closing_time')
+      .eq('id', restaurantId)
+      .single();
+
+    if (!org || !org.opening_time || !org.closing_time) return { allSlots: [], availableSlots: [] };
+
+    const startH = parseInt(org.opening_time.split(':')[0], 10);
+    const startM = parseInt(org.opening_time.split(':')[1], 10);
+    const endH = parseInt(org.closing_time.split(':')[0], 10);
+    const endM = parseInt(org.closing_time.split(':')[1], 10);
+
+    const baseDate = new Date('2000-01-01T00:00:00Z');
+    const startTimeTime = new Date(baseDate); startTimeTime.setUTCHours(startH, startM);
+    const endTimeTime = new Date(baseDate); endTimeTime.setUTCHours(endH, endM);
+    if (endTimeTime < startTimeTime) endTimeTime.setUTCDate(endTimeTime.getUTCDate() + 1);
+
+    const allSlots: string[] = [];
+    const availableSlots: string[] = [];
+    const current = new Date(startTimeTime);
+    
+    while (current <= endTimeTime) {
+      const h = current.getUTCHours().toString().padStart(2, '0');
+      const m = current.getUTCMinutes().toString().padStart(2, '0');
+      allSlots.push(`${h}:${m}`);
+      current.setUTCMinutes(current.getUTCMinutes() + 30);
+    }
+
+    for (const slot of allSlots) {
+      const available = await this.getAvailableTables(restaurantId, date, slot, partySize);
+      if (available.length > 0) availableSlots.push(slot);
+    }
+
+    return { allSlots, availableSlots };
+  }
+
+  /**
+   * Export reservations as CSV.
    */
   async exportCsv(restaurantId: string, startDate?: string, endDate?: string): Promise<string> {
     let query = supabaseAdmin
@@ -445,53 +453,32 @@ export class ReservationService {
     const { data, error } = await query;
     if (error) throw new AppError('Failed to export reservations', 500);
 
-    // Build CSV
-    const headers = [
-      'Date', 'Start Time', 'End Time', 'Party Size',
-      'Guest Name', 'Email', 'Phone',
-      'Table', 'Status', 'Source', 'Special Requests',
-      'Payment Status', 'Created At',
-    ];
-
+    const headers = ['Date', 'Start Time', 'End Time', 'Party Size', 'Guest Name', 'Email', 'Phone', 'Table', 'Status', 'Source', 'Special Requests', 'Payment Status', 'Created At'];
     const rows = (data || []).map((r: any) => [
-      r.reservation_date,
-      r.start_time,
-      r.end_time,
-      r.party_size,
+      r.reservation_date, r.start_time, r.end_time, r.party_size,
       `${r.guest_first_name || ''} ${r.guest_last_name || ''}`.trim(),
-      r.guest_email || '',
-      r.guest_phone || '',
-      r.tables?.name || r.tables?.table_number || '',
-      r.status,
-      r.source,
-      (r.special_requests || '').replace(/"/g, '""'),
-      r.payment_status || 'none',
-      r.created_at,
+      r.guest_email || '', r.guest_phone || '', r.tables?.name || r.tables?.table_number || '',
+      r.status, r.source, (r.special_requests || '').replace(/"/g, '""'), r.payment_status || 'none', r.created_at,
     ]);
 
-    const csvLines = [
-      headers.join(','),
-      ...rows.map((row: string[]) => row.map((v: string) => `"${v}"`).join(',')),
-    ];
-
-    return csvLines.join('\n');
+    return [headers.join(','), ...rows.map(row => row.map(v => `"${v}"`).join(','))].join('\n');
   }
 
   // ─── Formatter ────────────────────────────────────────
 
   private formatReservation(row: any) {
+    // Ensure reservationDate is always YYYY-MM-DD string
+    let reservationDate = row.reservation_date;
+    if (reservationDate instanceof Date) {
+      reservationDate = reservationDate.toISOString().split('T')[0];
+    } else if (typeof reservationDate === 'string' && reservationDate.includes('T')) {
+      reservationDate = reservationDate.split('T')[0];
+    }
+
     return {
       id: row.id,
       restaurantId: row.restaurant_id,
-      table: row.tables
-        ? {
-            id: row.tables.id,
-            tableNumber: row.tables.table_number,
-            name: row.tables.name,
-            area: row.tables.floor_areas?.name || null,
-          }
-        : null,
-      reservationDate: row.reservation_date,
+      reservationDate,
       startTime: row.start_time,
       endTime: row.end_time,
       partySize: row.party_size,
@@ -512,6 +499,14 @@ export class ReservationService {
       cancellationReason: row.cancellation_reason,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
+      table: row.tables
+        ? {
+            id: row.tables.id,
+            tableNumber: row.tables.table_number,
+            name: row.tables.name,
+            area: row.tables.floor_areas?.name || null,
+          }
+        : null,
     };
   }
 }

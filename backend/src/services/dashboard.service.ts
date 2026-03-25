@@ -7,7 +7,14 @@ export class DashboardService {
    * Get comprehensive dashboard statistics for a restaurant.
    */
   async getStats(restaurantId: string) {
-    const today = getTodayDate();
+    // 1. Fetch organization timezone and operating hours
+    const { data: org } = await supabaseAdmin
+      .from('organizations')
+      .select('timezone, opening_time, closing_time')
+      .eq('id', restaurantId)
+      .single();
+    
+    const today = getTodayDate(org?.timezone || 'UTC');
 
     const [
       todayReservations,
@@ -16,6 +23,8 @@ export class DashboardService {
       upcomingReservations,
       statusBreakdown,
       recentReservations,
+      totalStaffCount,
+      seatedNowCount,
     ] = await Promise.all([
       // Today's reservation count
       supabaseAdmin
@@ -59,6 +68,21 @@ export class DashboardService {
         .eq('restaurant_id', restaurantId)
         .order('created_at', { ascending: false })
         .limit(5),
+
+      // Total active staff count
+      supabaseAdmin
+        .from('staff_members')
+        .select('*', { count: 'exact', head: true })
+        .eq('restaurant_id', restaurantId)
+        .eq('is_active', true),
+
+      // Currently seated count (today's reservations with 'seated' status)
+      supabaseAdmin
+        .from('reservations')
+        .select('*', { count: 'exact', head: true })
+        .eq('restaurant_id', restaurantId)
+        .eq('reservation_date', today)
+        .eq('status', 'seated'),
     ]);
 
     // Calculate status breakdown
@@ -86,8 +110,12 @@ export class DashboardService {
 
     return {
       today: {
+        date: today,
+        openingTime: org?.opening_time || '12:00',
+        closingTime: org?.closing_time || '22:00',
         reservations: todayReservations.count || 0,
         covers: todayCovers,
+        seatedNow: seatedNowCount.count || 0,
         statusBreakdown: breakdown,
         waitingList: waitingCount || 0,
       },
@@ -95,6 +123,7 @@ export class DashboardService {
         allTimeReservations: totalReservations.count || 0,
         activeTables: activeTableCount.count || 0,
         upcomingReservations: upcomingReservations.count || 0,
+        totalStaff: totalStaffCount.count || 0,
       },
       recentReservations: (recentReservations.data || []).map((r: any) => ({
         id: r.id,

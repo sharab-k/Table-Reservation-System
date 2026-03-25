@@ -1,34 +1,170 @@
 import { useState, useEffect } from 'react'
-import { Plus, Edit } from 'lucide-react'
+import { Plus, Edit, Trash2, X } from 'lucide-react'
 import { api } from '../../../services/api'
 import StatusBadge from '../../../components/StatusBadge'
 
 interface TablesManagementTabProps {
   theme: 'dark' | 'light'
+  orgId: string
 }
 
-export default function TablesManagementTab({ theme }: TablesManagementTabProps) {
+interface TableForm {
+  tableNumber: string
+  name: string
+  capacity: number
+  areaId: string
+  shape: string
+  type: string
+  isMergeable: boolean
+}
+
+const emptyForm: TableForm = {
+  tableNumber: '',
+  name: '',
+  capacity: 2,
+  areaId: '',
+  shape: 'rectangle',
+  type: '',
+  isMergeable: false,
+}
+
+export default function TablesManagementTab({ theme, orgId }: TablesManagementTabProps) {
   const isDark = theme === 'dark'
   const [tablesList, setTablesList] = useState<any[]>([])
+  const [areasList, setAreasList] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
-    const fetchTables = async () => {
-      try {
-        setLoading(true)
-        const orgId = 'default-org-id'
-        const { data } = await api.get(`/organizations/${orgId}/tables`)
-        if (data.data) {
-          setTablesList(data.data)
-        }
-      } catch (err) {
-        console.error('Failed to fetch tables:', err)
-      } finally {
-        setLoading(false)
+  // Modal state
+  const [showModal, setShowModal] = useState(false)
+  const [editingTable, setEditingTable] = useState<any>(null)
+  const [form, setForm] = useState<TableForm>(emptyForm)
+  const [saving, setSaving] = useState(false)
+
+  // Delete confirmation
+  const [confirmDelete, setConfirmDelete] = useState<any>(null)
+  const [deleting, setDeleting] = useState(false)
+
+  const fetchTables = async () => {
+    try {
+      setLoading(true)
+      const { data } = await api.get(`/organizations/${orgId}/tables`)
+      if (data.data) {
+        setTablesList(data.data)
       }
+    } catch (err) {
+      console.error('Failed to fetch tables:', err)
+    } finally {
+      setLoading(false)
     }
+  }
+
+  const fetchAreas = async () => {
+    try {
+      const { data } = await api.get(`/organizations/${orgId}/tables/areas`)
+      if (data.data) {
+        setAreasList(data.data)
+      }
+    } catch (err) {
+      console.error('Failed to fetch areas:', err)
+    }
+  }
+
+  useEffect(() => {
+    if (!orgId) return
     fetchTables()
-  }, [])
+    fetchAreas()
+  }, [orgId])
+
+  const openAddModal = () => {
+    setEditingTable(null)
+    setForm(emptyForm)
+    setShowModal(true)
+  }
+
+  const openEditModal = (table: any) => {
+    setEditingTable(table)
+    setForm({
+      tableNumber: String(table.tableNumber || ''),
+      name: table.name || '',
+      capacity: table.capacity || 2,
+      areaId: table.area?.id || '',
+      shape: table.shape || 'rectangle',
+      type: table.type || '',
+      isMergeable: table.isMergeable || false,
+    })
+    setShowModal(true)
+  }
+
+  const handleSave = async () => {
+    if (!form.tableNumber || !form.capacity) return
+    try {
+      setSaving(true)
+      if (editingTable) {
+        await api.put(`/organizations/${orgId}/tables/${editingTable.id}`, {
+          tableNumber: form.tableNumber,
+          name: form.name || `Table ${form.tableNumber}`,
+          capacity: form.capacity,
+          areaId: form.areaId || undefined,
+          shape: form.shape,
+          type: form.type || undefined,
+          isMergeable: form.isMergeable,
+        })
+      } else {
+        await api.post(`/organizations/${orgId}/tables`, {
+          tableNumber: form.tableNumber,
+          name: form.name || `Table ${form.tableNumber}`,
+          capacity: form.capacity,
+          areaId: form.areaId || undefined,
+          shape: form.shape,
+          type: form.type || undefined,
+          isMergeable: form.isMergeable,
+        })
+      }
+      setShowModal(false)
+      setForm(emptyForm)
+      setEditingTable(null)
+      fetchTables()
+    } catch (err: any) {
+      console.error('Failed to save table:', err)
+      alert(err?.response?.data?.message || 'Failed to save table.')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!confirmDelete) return
+    try {
+      setDeleting(true)
+      await api.delete(`/organizations/${orgId}/tables/${confirmDelete.id}`)
+      setTablesList(tablesList.filter(t => t.id !== confirmDelete.id))
+      setConfirmDelete(null)
+    } catch (err) {
+      console.error('Failed to delete table:', err)
+      alert('Failed to delete table.')
+    } finally {
+      setDeleting(false)
+    }
+  }
+
+  const inputStyle = {
+    width: '100%',
+    padding: '10px 16px',
+    backgroundColor: 'transparent',
+    border: `1px solid ${isDark ? '#30363d' : '#d1d5db'}`,
+    borderRadius: '8px',
+    color: isDark ? '#ffffff' : '#111827',
+    boxSizing: 'border-box' as const,
+    fontSize: '0.875rem',
+  }
+
+  const labelStyle = {
+    display: 'block',
+    fontSize: '0.875rem',
+    fontWeight: 500,
+    color: isDark ? '#d1d5db' : '#374151',
+    marginBottom: '6px',
+  }
 
   return (
     <div>
@@ -36,19 +172,21 @@ export default function TablesManagementTab({ theme }: TablesManagementTabProps)
         <h3 style={{ fontSize: '1.25rem', fontWeight: 600, margin: 0, color: isDark ? '#ffffff' : '#1f2937' }}>
           All Tables
         </h3>
-        <button style={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: '8px',
-          fontSize: '0.875rem',
-          fontWeight: 600,
-          padding: '8px 16px',
-          backgroundColor: '#C99C63',
-          color: '#101A1C',
-          border: 'none',
-          borderRadius: '6px',
-          cursor: 'pointer'
-        }}>
+        <button
+          onClick={openAddModal}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            fontSize: '0.875rem',
+            fontWeight: 600,
+            padding: '8px 16px',
+            backgroundColor: '#C99C63',
+            color: '#101A1C',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer'
+          }}>
           <Plus size={16} />
           Add Table
         </button>
@@ -61,7 +199,7 @@ export default function TablesManagementTab({ theme }: TablesManagementTabProps)
               {['Table', 'Area', 'Capacity', 'Type', 'Shape', 'Status', ''].map((h) => (
                 <th key={h} style={{
                   textAlign: 'left',
-                  padding: '16px', // spacious header padding
+                  padding: '16px',
                   fontWeight: 500,
                   color: isDark ? '#8b949e' : '#6b7280'
                 }}>
@@ -86,33 +224,38 @@ export default function TablesManagementTab({ theme }: TablesManagementTabProps)
                 onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
               >
                 <td style={{ padding: '16px', fontWeight: 600, color: isDark ? '#ffffff' : '#1f2937' }}>
-                  {table.name || `#${table.table_number}`}
+                  {table.name || `#${table.tableNumber}`}
                 </td>
                 <td style={{ padding: '16px', color: isDark ? '#8b949e' : '#6b7280' }}>
-                  {table.floor_area?.name || table.area || 'Main Dining'}
+                  {table.area?.name || 'Unassigned'}
                 </td>
                 <td style={{ padding: '16px', color: isDark ? '#8b949e' : '#6b7280' }}>
                   {table.capacity}
                 </td>
                 <td style={{ padding: '16px', color: isDark ? '#8b949e' : '#6b7280' }}>
-                  {table.table_type || 'Standard'}
+                  {table.type || 'Standard'}
                 </td>
                 <td style={{ padding: '16px', color: isDark ? '#8b949e' : '#6b7280' }}>
                   {table.shape || 'Rectangle'}
                 </td>
                 <td style={{ padding: '16px' }}>
-                  <StatusBadge status={table.status || 'available'} />
+                  <StatusBadge status={'available'} />
                 </td>
                 <td style={{ padding: '16px', textAlign: 'right' }}>
-                  <button style={{
-                    background: 'none',
-                    border: 'none',
-                    color: isDark ? '#8b949e' : '#6b7280',
-                    cursor: 'pointer',
-                    padding: '4px'
-                  }}>
-                    <Edit size={16} />
-                  </button>
+                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); openEditModal(table) }}
+                      style={{ background: 'none', border: 'none', color: isDark ? '#8b949e' : '#6b7280', cursor: 'pointer', padding: '4px' }}
+                    >
+                      <Edit size={16} />
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setConfirmDelete(table) }}
+                      style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '4px' }}
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
@@ -122,6 +265,189 @@ export default function TablesManagementTab({ theme }: TablesManagementTabProps)
           </tbody>
         </table>
       </div>
+
+      {/* Add/Edit Table Modal */}
+      {showModal && (
+        <div style={{
+          position: 'fixed', inset: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 50
+        }}>
+          <div style={{
+            backgroundColor: isDark ? '#101A1C' : '#ffffff',
+            border: `1px solid ${isDark ? '#30363d' : '#e5e7eb'}`,
+            borderRadius: '12px',
+            padding: '32px',
+            width: '100%',
+            maxWidth: '480px',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <h3 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 600, color: isDark ? '#ffffff' : '#111827' }}>
+                {editingTable ? 'Edit Table' : 'Add New Table'}
+              </h3>
+              <button
+                onClick={() => { setShowModal(false); setEditingTable(null) }}
+                style={{ background: 'none', border: 'none', color: isDark ? '#8b949e' : '#6b7280', cursor: 'pointer' }}
+              >
+                <X size={20} />
+              </button>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+              <div>
+                <label style={labelStyle}>Table Number *</label>
+                <input
+                  type="text"
+                  value={form.tableNumber}
+                  onChange={(e) => setForm({ ...form, tableNumber: e.target.value })}
+                  placeholder="e.g. 1"
+                  style={inputStyle}
+                />
+              </div>
+              <div>
+                <label style={labelStyle}>Name</label>
+                <input
+                  type="text"
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  placeholder="e.g. Window Seat 1"
+                  style={inputStyle}
+                />
+              </div>
+              <div>
+                <label style={labelStyle}>Capacity *</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={form.capacity}
+                  onChange={(e) => setForm({ ...form, capacity: parseInt(e.target.value) || 1 })}
+                  style={inputStyle}
+                />
+              </div>
+              <div>
+                <label style={labelStyle}>Area</label>
+                <select
+                  value={form.areaId}
+                  onChange={(e) => setForm({ ...form, areaId: e.target.value })}
+                  style={{ ...inputStyle, backgroundColor: isDark ? '#161B22' : '#ffffff' }}
+                >
+                  <option value="">No Area</option>
+                  {areasList.map((area: any) => (
+                    <option key={area.id} value={area.id}>{area.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label style={labelStyle}>Shape</label>
+                <select
+                  value={form.shape}
+                  onChange={(e) => setForm({ ...form, shape: e.target.value })}
+                  style={{ ...inputStyle, backgroundColor: isDark ? '#161B22' : '#ffffff' }}
+                >
+                  <option value="rectangle">Rectangle</option>
+                  <option value="circle">Circle</option>
+                  <option value="square">Square</option>
+                  <option value="oval">Oval</option>
+                </select>
+              </div>
+              <div>
+                <label style={labelStyle}>Type</label>
+                <input
+                  type="text"
+                  value={form.type}
+                  onChange={(e) => setForm({ ...form, type: e.target.value })}
+                  placeholder="e.g. VIP, Standard"
+                  style={inputStyle}
+                />
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '24px' }}>
+              <label style={{ ...labelStyle, display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
+                <input
+                  type="checkbox"
+                  checked={form.isMergeable}
+                  onChange={(e) => setForm({ ...form, isMergeable: e.target.checked })}
+                  style={{ width: '16px', height: '16px', accentColor: '#C99C63' }}
+                />
+                Allow merging with adjacent tables
+              </label>
+            </div>
+
+            <button
+              onClick={handleSave}
+              disabled={saving || !form.tableNumber}
+              style={{
+                width: '100%',
+                padding: '12px',
+                backgroundColor: saving ? '#9ca3af' : '#C99C63',
+                color: '#ffffff',
+                border: 'none',
+                borderRadius: '8px',
+                fontWeight: 600,
+                cursor: saving ? 'not-allowed' : 'pointer'
+              }}
+            >
+              {saving ? 'Saving...' : (editingTable ? 'Update Table' : 'Create Table')}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {confirmDelete && (
+        <div style={{
+          position: 'fixed', inset: 0,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          zIndex: 60
+        }}>
+          <div style={{
+            backgroundColor: isDark ? '#101A1C' : '#ffffff',
+            border: `1px solid ${isDark ? '#30363d' : '#e5e7eb'}`,
+            borderRadius: '12px',
+            padding: '32px',
+            width: '100%',
+            maxWidth: '400px',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)'
+          }}>
+            <h3 style={{ margin: '0 0 16px 0', fontSize: '1.25rem', fontWeight: 600, color: isDark ? '#ffffff' : '#111827' }}>Delete Table</h3>
+            <p style={{ margin: '0 0 24px 0', fontSize: '0.875rem', color: isDark ? '#d1d5db' : '#4b5563', lineHeight: 1.5 }}>
+              Are you sure you want to delete <strong>{confirmDelete.name || `Table #${confirmDelete.tableNumber}`}</strong>? This action cannot be undone.
+            </p>
+            <div style={{ display: 'flex', gap: '12px' }}>
+              <button
+                onClick={() => setConfirmDelete(null)}
+                disabled={deleting}
+                style={{
+                  flex: 1, padding: '10px',
+                  backgroundColor: 'transparent',
+                  border: `1px solid ${isDark ? '#30363d' : '#d1d5db'}`,
+                  color: isDark ? '#e6edf3' : '#374151',
+                  borderRadius: '8px', fontWeight: 600,
+                  cursor: deleting ? 'not-allowed' : 'pointer'
+                }}
+              >Cancel</button>
+              <button
+                onClick={handleDelete}
+                disabled={deleting}
+                style={{
+                  flex: 1, padding: '10px',
+                  backgroundColor: '#ef4444',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '8px', fontWeight: 600,
+                  cursor: deleting ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {deleting ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

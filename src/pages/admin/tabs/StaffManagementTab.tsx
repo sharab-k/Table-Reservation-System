@@ -5,19 +5,10 @@ import StatusBadge from '../../../components/StatusBadge'
 
 interface StaffManagementTabProps {
   theme: 'dark' | 'light'
+  orgId: string
 }
 
-const staff = [
-  { id: 1, name: 'Sarah Chen', email: 'sarahchen@example.com', lastActive: '2 min ago', status: 'manager' as const },
-  { id: 2, name: 'James Wilson', email: 'jameswilson@example.com', lastActive: '5 min ago', status: 'manager' as const },
-  { id: 3, name: 'Maria Garcia', email: 'mariagarcia@example.com', lastActive: '3 min ago', status: 'host' as const },
-  { id: 4, name: 'Robert Kim', email: 'robertkim@example.com', lastActive: '10 min ago', status: 'manager' as const },
-  { id: 5, name: 'Emily Davis', email: 'emilydavis@example.com', lastActive: '15 min ago', status: 'host' as const },
-  { id: 6, name: 'Tom Miller', email: 'tommiller@example.com', lastActive: '2 min ago', status: 'viewer' as const },
-  { id: 7, name: 'Tom Miller', email: 'tommiller@example.com', lastActive: '2 min ago', status: 'viewer' as const },
-]
-
-export default function StaffManagementTab({ theme }: StaffManagementTabProps) {
+export default function StaffManagementTab({ theme, orgId }: StaffManagementTabProps) {
   const isDark = theme === 'dark'
   const [staffList, setStaffList] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
@@ -35,16 +26,12 @@ export default function StaffManagementTab({ theme }: StaffManagementTabProps) {
   const fetchStaff = async () => {
     try {
       setLoading(true)
-      const orgId = 'default-org-id'
       const { data } = await api.get(`/organizations/${orgId}/staff`)
-      if (data.staff) {
-        setStaffList(data.staff)
-      } else {
-        setStaffList(staff) // Fallback to dummy data if not implemented fully
+      if (data.data) {
+        setStaffList(data.data)
       }
     } catch (err) {
       console.error('Failed to fetch staff:', err)
-      setStaffList(staff)
     } finally {
       setLoading(false)
     }
@@ -54,22 +41,32 @@ export default function StaffManagementTab({ theme }: StaffManagementTabProps) {
     fetchStaff()
   }, [])
 
+  const [lastInviteLink, setLastInviteLink] = useState('')
+
   const handleInvite = async () => {
     if (!inviteEmail) return
     try {
       setInviteLoading(true)
-      const orgId = 'default-org-id'
-      await api.post(`/organizations/${orgId}/staff/invite`, {
+      const { data } = await api.post(`/organizations/${orgId}/staff/invite`, {
         email: inviteEmail,
         role: inviteRole
       })
-      alert('Staff invited successfully!')
-      setShowInvite(false)
-      setInviteEmail('')
+      
+      const inviteLink = data.data?.inviteLink
+      if (inviteLink) {
+        setLastInviteLink(inviteLink)
+        // We'll show a success message but keep the modal open to show the link
+        alert('Staff invited! If they don\'t receive the email, you can copy the direct link below.')
+      } else {
+        alert('Staff invited successfully!')
+        setShowInvite(false)
+        setInviteEmail('')
+      }
       fetchStaff()
-    } catch (err) {
+    } catch (err: any) {
       console.error('Failed to invite staff:', err)
-      alert('Failed to invite staff.')
+      const message = err.response?.data?.error || 'Failed to invite staff.'
+      alert(message)
     } finally {
       setInviteLoading(false)
     }
@@ -79,7 +76,6 @@ export default function StaffManagementTab({ theme }: StaffManagementTabProps) {
     if (!confirmDeleteMember) return
     try {
       setDeleteLoading(true)
-      const orgId = 'default-org-id' // Ideally from auth context
       await api.delete(`/organizations/${orgId}/staff/${confirmDeleteMember.id}`)
       setStaffList(staffList.filter(s => s.id !== confirmDeleteMember.id))
       setConfirmDeleteMember(null)
@@ -174,7 +170,21 @@ export default function StaffManagementTab({ theme }: StaffManagementTabProps) {
               </tr>
             </thead>
             <tbody>
-              {staffList.map((member: any) => (
+              {loading && (
+                <tr>
+                  <td colSpan={5} style={{ textAlign: 'center', padding: '48px', color: isDark ? '#8b949e' : '#6b7280' }}>
+                    Loading staff members...
+                  </td>
+                </tr>
+              )}
+              {!loading && staffList.length === 0 && (
+                <tr>
+                  <td colSpan={5} style={{ textAlign: 'center', padding: '48px', color: isDark ? '#8b949e' : '#6b7280' }}>
+                    No staff members found.
+                  </td>
+                </tr>
+              )}
+              {!loading && Array.isArray(staffList) && staffList.map((member: any) => (
                 <tr
                   key={member.id}
                   style={{
@@ -192,7 +202,7 @@ export default function StaffManagementTab({ theme }: StaffManagementTabProps) {
                     {member.email}
                   </td>
                   <td style={{ padding: '16px 24px', color: isDark ? '#e6edf3' : '#4b5563' }}>
-                    {member.lastActive || 'Never'}
+                    {member.lastActive ? new Date(member.lastActive).toLocaleString() : 'Never'}
                   </td>
                   <td style={{ padding: '16px 24px' }}>
                     <StatusBadge status={member.role || member.status || 'viewer'} />
@@ -303,22 +313,79 @@ export default function StaffManagementTab({ theme }: StaffManagementTabProps) {
               </div>
             </div>
 
-            <button 
-              onClick={handleInvite}
-              disabled={inviteLoading}
-              style={{
-                width: '100%',
-                padding: '12px',
-                backgroundColor: inviteLoading ? '#9ca3af' : '#C99C63',
-                color: '#ffffff',
-                border: 'none',
-                borderRadius: '8px',
-                fontWeight: 600,
-                cursor: inviteLoading ? 'not-allowed' : 'pointer'
-              }}
-            >
-              {inviteLoading ? 'Sending...' : 'Send Invitation'}
-            </button>
+              {lastInviteLink && (
+                <div style={{
+                  padding: '12px',
+                  backgroundColor: isDark ? '#1F2937' : '#F9FAFB',
+                  borderRadius: '8px',
+                  border: `1px solid ${isDark ? '#30363d' : '#e5e7eb'}`,
+                  marginBottom: '16px'
+                }}>
+                  <p style={{ margin: '0 0 8px 0', fontSize: '11px', color: isDark ? '#9ca3af' : '#6b7280' }}>
+                    Email delay? Send this link directly:
+                  </p>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <input 
+                      readOnly 
+                      value={lastInviteLink}
+                      onClick={(e) => (e.target as HTMLInputElement).select()}
+                      style={{
+                        flex: 1,
+                        fontSize: '11px',
+                        padding: '6px 8px',
+                        backgroundColor: isDark ? '#111827' : '#ffffff',
+                        border: `1px solid ${isDark ? '#30363d' : '#d1d5db'}`,
+                        borderRadius: '4px',
+                        color: isDark ? '#ffffff' : '#111827',
+                        outline: 'none'
+                      }}
+                    />
+                    <button 
+                      onClick={() => {
+                        navigator.clipboard.writeText(lastInviteLink)
+                        alert('Link copied!')
+                      }}
+                      style={{
+                        padding: '6px 10px',
+                        fontSize: '11px',
+                        backgroundColor: '#C99C63',
+                        color: '#fff',
+                        border: 'none',
+                        borderRadius: '4px',
+                        cursor: 'pointer',
+                        fontWeight: 600
+                      }}
+                    >
+                      Copy
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <button 
+                onClick={() => {
+                  if (lastInviteLink) {
+                    setShowInvite(false)
+                    setInviteEmail('')
+                    setLastInviteLink('')
+                  } else {
+                    handleInvite()
+                  }
+                }}
+                disabled={inviteLoading}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  backgroundColor: inviteLoading ? '#9ca3af' : '#C99C63',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '8px',
+                  fontWeight: 600,
+                  cursor: inviteLoading ? 'not-allowed' : 'pointer'
+                }}
+              >
+                {inviteLoading ? 'Sending...' : (lastInviteLink ? 'Close' : 'Send Invitation')}
+              </button>
           </div>
         </div>
       )}

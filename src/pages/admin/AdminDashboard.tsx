@@ -1,42 +1,53 @@
 import { useState, useEffect } from 'react'
 import { Calendar, Users as UsersIcon, LayoutGrid, UserCheck } from 'lucide-react'
 import { api } from '../../services/api'
+import { useAuth } from '../../context/AuthContext'
 import Navbar from '../../components/Navbar'
 import StatsCard from '../../components/StatsCard'
 import ReservationTab from './tabs/ReservationTab'
 import TablesManagementTab from './tabs/TablesManagementTab'
 import StaffManagementTab from './tabs/StaffManagementTab'
 import FloorMapTab from './tabs/FloorMapTab'
+import SettingsTab from './tabs/SettingsTab'
 
 const tabs = [
   { id: 'reservation', label: 'Reservation' },
   { id: 'tables', label: 'Tables Management' },
   { id: 'staff', label: 'Staff Management' },
   { id: 'floormap', label: 'Floor Map' },
+  { id: 'settings', label: 'Settings' },
 ]
 
 export default function AdminDashboard() {
+  const { user } = useAuth()
+  const orgId = user?.restaurantId || ''
   const [activeTab, setActiveTab] = useState('reservation')
   const [theme, setTheme] = useState<'dark' | 'light'>('dark')
   const [stats, setStats] = useState({
     todayBookings: 0,
     seatedNow: 0,
     totalTables: 0,
-    totalStaff: 0
+    totalStaff: 0,
+    serverToday: new Date().toISOString().split('T')[0],
+    openingTime: '12:00',
+    closingTime: '22:00'
   })
   const isDark = theme === 'dark'
 
   useEffect(() => {
+    if (!orgId) return
     const fetchStats = async () => {
       try {
-        const orgId = 'default-org-id'
-        const { data } = await api.get(`/organizations/${orgId}/stats`)
-        if (data.stats) {
+        const { data } = await api.get(`/organizations/${orgId}/dashboard/stats`)
+        if (data.data) {
           setStats({
-            todayBookings: data.stats.todayBookings || 0,
-            seatedNow: data.stats.seatedNow || 0,
-            totalTables: data.stats.totalTables || 0,
-            totalStaff: data.stats.totalStaff || 0
+            todayBookings: data.data.today?.reservations || 0,
+            seatedNow: data.data.today?.seatedNow || 0,
+            totalTables: data.data.totals?.activeTables || 0,
+            totalStaff: data.data.totals?.totalStaff || 0,
+            serverToday: data.data.today?.date || new Date().toISOString().split('T')[0],
+            openingTime: data.data.today?.openingTime || '12:00',
+            closingTime: data.data.today?.closingTime || '22:00'
           })
         }
       } catch (error) {
@@ -44,10 +55,32 @@ export default function AdminDashboard() {
       }
     }
     fetchStats()
-  }, [])
+  }, [orgId])
 
   const toggleTheme = () => {
     setTheme(prev => prev === 'dark' ? 'light' : 'dark')
+  }
+
+  if (!user || !orgId) {
+    return (
+      <div style={{
+        minHeight: '100vh',
+        backgroundColor: isDark ? '#0B1517' : '#ffffff',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        color: isDark ? '#ffffff' : '#1f2937',
+        flexDirection: 'column',
+        gap: '16px'
+      }}>
+        <Navbar variant="admin" theme={theme} onToggleTheme={toggleTheme} />
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <h2>Access Denied</h2>
+          <p>You must be logged in with a restaurant account to access the admin dashboard.</p>
+          <a href="/login" style={{ color: '#5EEA7A', textDecoration: 'none', marginTop: '16px', fontWeight: 600 }}>Go to Login</a>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -138,10 +171,11 @@ export default function AdminDashboard() {
 
           {/* Tab Content */}
           <div style={{ animation: 'fadeIn 0.3s ease-in-out' }}>
-            {activeTab === 'reservation' && <ReservationTab theme={theme} />}
-            {activeTab === 'tables' && <TablesManagementTab theme={theme} />}
-            {activeTab === 'staff' && <StaffManagementTab theme={theme} />}
-            {activeTab === 'floormap' && <FloorMapTab theme={theme} />}
+            {activeTab === 'reservation' && <ReservationTab theme={theme} orgId={orgId} serverToday={stats.serverToday} openingTime={stats.openingTime} closingTime={stats.closingTime} />}
+            {activeTab === 'tables' && <TablesManagementTab theme={theme} orgId={orgId} />}
+            {activeTab === 'staff' && <StaffManagementTab theme={theme} orgId={orgId} />}
+            {activeTab === 'floormap' && <FloorMapTab theme={theme} orgId={orgId} />}
+            {activeTab === 'settings' && <SettingsTab theme={theme} orgId={orgId} />}
           </div>
         </div>
       </div>
